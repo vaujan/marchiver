@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Build output
+out/
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Lock files (keep one)
+package-lock.json
+yarn.lock
+
+# pnpm
+.pnpm-store/
+
+# Local env files
+.env
+.env.local
+
+# Electron
+*.app
+*.exe
+*.dmg
+*.snap
+*.deb
+*.rpm
+*.AppImage
+
