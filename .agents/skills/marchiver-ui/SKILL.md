@@ -67,11 +67,11 @@ The marchiver sidebar uses a dark background in light mode. Achieve this by addi
 
 This forces the sidebar to use the `.dark` CSS variable values (dark `bg-sidebar`, light `text-sidebar-foreground`) while the rest of the app remains in light mode.
 
-### 5. Icons from lucide-react
+### 5. Icons from @phosphor-icons/react
 
-The project uses `lucide-react` (configured in `components.json` as `iconLibrary: "lucide"`).
+The project uses `@phosphor-icons/react` (configured in `components.json` as `iconLibrary: "phosphor"`).
 
-- Import icons as named objects: `import { Inbox, Trash2, Folder } from 'lucide-react'`
+- Import icons as named objects: `import { Tray, Trash, Folder } from '@phosphor-icons/react'`
 - Use the `data-icon` prop for positioning inside buttons: `data-icon="inline-start"` or `data-icon="inline-end"`
 - Never add sizing classes like `size-4` or `w-4 h-4` to icons inside shadcn components — the component handles sizing via CSS
 
@@ -177,7 +177,7 @@ Use the full `Sidebar` component with `collapsible="none"` for a fixed sidebar:
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton isActive={...} onClick={...}>
-              <Inbox data-icon="inline-start" />
+              <Tray data-icon="inline-start" />
               All Items
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -269,7 +269,7 @@ These patterns are **prohibited** in the marchiver codebase:
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton isActive={active} onClick={handleClick}>
-              <Inbox data-icon="inline-start" />
+              <Tray data-icon="inline-start" />
               All Items
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -333,15 +333,15 @@ These patterns are **prohibited** in the marchiver codebase:
 ```tsx
 <div className="flex gap-2">
   <Button onClick={handleOpen}>
-    <ExternalLink data-icon="inline-start" />
+    <ArrowSquareOut data-icon="inline-start" />
     Open in Browser
   </Button>
   <Button variant="outline">
-    <Pencil data-icon="inline-start" />
+    <PencilSimple data-icon="inline-start" />
     Edit
   </Button>
   <Button variant="destructive" onClick={handleDelete}>
-    <Trash2 data-icon="inline-start" />
+    <Trash data-icon="inline-start" />
     Move to Trash
   </Button>
 </div>

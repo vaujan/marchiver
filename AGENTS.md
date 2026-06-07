@@ -120,7 +120,7 @@ src/
 6. **shadcn/ui**: Add components via `npx shadcn@latest add @shadcn/<component>`. Follow the project's `components.json` configuration.
 7. **Error Handling**: IPC handlers should catch errors and return `{ success: false, error: string }` or throw (preload/renderer should handle).
 8. **TypeScript**: Strict mode. Define explicit types for all IPC payloads and responses.
-9. **UI Components**: Always use shadcn/ui components before writing custom markup. Use `lucide-react` icons. Never hardcode colors — use semantic tokens only. Use `cn()` for conditional classes. Use `FieldGroup` + `Field` for form layout.
+9. **UI Components**: Always use shadcn/ui components before writing custom markup. Use `@phosphor-icons/react` icons. Never hardcode colors — use semantic tokens only. Use `cn()` for conditional classes. Use `FieldGroup` + `Field` for form layout.
 
 ## Skills Reference
 

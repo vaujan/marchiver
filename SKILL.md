@@ -90,7 +90,7 @@ marchiver/
 ### shadcn/ui
 - Configured in `components.json` with `style: "base-rhea"`.
 - Base library: `@base-ui/react` (Radix).
-- Icon library: `lucide-react`.
+- Icon library: `@phosphor-icons/react`.
 - Components are added via `npx shadcn@latest add <component>`.
 
 ### IPC Naming
