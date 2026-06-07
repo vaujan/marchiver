@@ -100,6 +100,18 @@ function App(): React.ReactElement {
     loadData()
   }, [activeFolder, activeTag, searchQuery, trashView])
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') {
+        setSelectedEntry(null)
+        const active = document.activeElement as HTMLElement | null
+        active?.blur()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   const handleAddEntry = async (payload: AddEntryPayload): Promise<void> => {
     const result = await window.electronAPI.addEntry(payload)
     setEntries((prev) => [result as Entry, ...prev])
