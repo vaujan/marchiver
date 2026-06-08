@@ -23,6 +23,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group";
 import {
 	Link,
@@ -45,22 +46,6 @@ interface ItemListProps {
 	activeTag: number | null;
 	trashView: boolean;
 }
-
-// Generate a short description for an entry
-const getEntryDescription = (entry: Entry): string => {
-	const tagText =
-		entry.tags.length > 0 ? entry.tags.map((t) => `#${t}`).join(" ") : "";
-
-	if (entry.type === "url") {
-		return `${tagText} ${entry.source_url || ""}`.trim();
-	}
-
-	if (entry.type === "image") {
-		return tagText || "Image reference";
-	}
-
-	return tagText;
-};
 
 // Format date relative to now (like "Yesterday", "Just now", etc.)
 const formatRelativeDate = (dateString: string): string => {
@@ -243,7 +228,7 @@ const ItemList: React.FC<ItemListProps> = ({
 	};
 
 	return (
-		<div className="w-[380px] min-w-[380px] bg-card border-r border-border flex flex-col">
+		<div className="w-[380px] min-w-[380px] bg-card border-r border-border flex flex-col h-full">
 			{/* Top bar - matching the screenshot style */}
 			<div className="px-4 py-3 flex items-center justify-between gap-3">
 				{/* Left: Section name with dropdown */}
@@ -258,14 +243,16 @@ const ItemList: React.FC<ItemListProps> = ({
 				<div className="flex items-center gap-2">
 					{/* Add button */}
 					<Dialog>
-						<DialogTrigger asChild>
-							<Button
-								variant="ghost"
-								size="icon-sm"
-								className="text-muted-foreground hover:text-foreground"
-							>
-								<NotePencil className="size-4" />
-							</Button>
+						<DialogTrigger
+							render={
+								<Button
+									variant="ghost"
+									size="icon-sm"
+									className="text-muted-foreground hover:text-foreground"
+								/>
+							}
+						>
+							<NotePencil className="size-4" />
 						</DialogTrigger>
 						<DialogContent className="sm:max-w-sm">
 							<DialogHeader>
@@ -302,7 +289,10 @@ const ItemList: React.FC<ItemListProps> = ({
 					<Button
 						variant="ghost"
 						size="icon-sm"
-						className={`text-muted-foreground hover:text-foreground ${searchMode ? "bg-accent" : ""}`}
+						className={cn(
+							"text-muted-foreground hover:text-foreground",
+							searchMode && "bg-accent"
+						)}
 						onClick={() => setSearchMode(!searchMode)}
 					>
 						<MagnifyingGlass className="size-4" />
@@ -512,8 +502,8 @@ const ItemList: React.FC<ItemListProps> = ({
 				</DialogContent>
 			</Dialog>
 
-			<ScrollArea className="flex-1">
-				<div className="flex flex-col">
+			<ScrollArea className="flex-1 min-h-0 overflow-x-hidden">
+				<div className="flex flex-col divide-y divide-border/40">
 					{entries.map((entry) => {
 						const isSelected = selectedEntry?.id === entry.id;
 						const hasImage = entry.screenshot_path || entry.type === "image";
@@ -522,7 +512,7 @@ const ItemList: React.FC<ItemListProps> = ({
 							<div
 								key={entry.id}
 								onClick={() => onSelectEntry(entry)}
-								className="group cursor-pointer border border-transparent p-4 transition-all hover:bg-muted/50 data-[selected=true]:border-r-[3px] data-[selected=true]:border-r-primary data-[selected=true]:bg-accent"
+								className="group cursor-pointer p-4 transition-all hover:bg-muted/50 data-[selected=true]:bg-accent"
 								data-selected={isSelected}
 							>
 								{/* Title */}
@@ -533,9 +523,9 @@ const ItemList: React.FC<ItemListProps> = ({
 								{/* Description with inline tags */}
 								<p className="text-[13px] leading-relaxed text-muted-foreground line-clamp-2 mb-2">
 									{entry.tags.length > 0 && (
-						<span>
-							{entry.tags.map((tag) => `#${tag}`).join(" ")}
-						</span>
+										<span>
+											{entry.tags.map((tag) => `#${tag}`).join(" ")}
+										</span>
 									)}
 									{entry.tags.length > 0 && " "}
 									{entry.source_url || entry.title}
