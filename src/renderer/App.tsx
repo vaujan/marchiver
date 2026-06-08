@@ -54,6 +54,11 @@ function App(): React.ReactElement {
   const [trashView, setTrashView] = useState(false)
   const [useMockData, setUseMockData] = useState(true)
 
+  // Toolbar states
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest' | 'alphabetical' | 'type'>('newest')
+  const [viewMode, setViewMode] = useState<'expanded' | 'compact'>('expanded')
+  const [activeTagFilters, setActiveTagFilters] = useState<number[]>([])
+
   // Theme state
   const [isDark, setIsDark] = useState(() => {
     try {
@@ -72,6 +77,16 @@ function App(): React.ReactElement {
         // ignore
       }
       return next
+    })
+  }, [])
+
+  const sortEntries = useCallback((list: Entry[], order: typeof sortOrder): Entry[] => {
+    return [...list].sort((a, b) => {
+      if (order === 'newest') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      if (order === 'oldest') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      if (order === 'alphabetical') return a.title.localeCompare(b.title)
+      if (order === 'type') return a.type.localeCompare(b.type)
+      return 0
     })
   }, [])
 
@@ -96,12 +111,28 @@ function App(): React.ReactElement {
         }
       }
 
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase()
+      // Multi-tag filter (AND logic)
+      if (activeTagFilters.length > 0) {
+        const filterTagNames = activeTagFilters
+          .map((id) => MOCK_TAGS.find((t) => t.id === id)?.name)
+          .filter(Boolean) as string[]
         filteredEntries = filteredEntries.filter((entry) =>
-          entry.title.toLowerCase().includes(q)
+          filterTagNames.every((name) => entry.tags.includes(name))
         )
       }
+
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase()
+        filteredEntries = filteredEntries.filter(
+          (entry) =>
+            entry.title.toLowerCase().includes(q) ||
+            (entry.source_url?.toLowerCase().includes(q) ?? false) ||
+            entry.tags.some((tag) => tag.toLowerCase().includes(q))
+        )
+      }
+
+      // Sort
+      filteredEntries = sortEntries(filteredEntries, sortOrder)
 
       setFolders(MOCK_FOLDERS)
       setTags(MOCK_TAGS)
@@ -119,14 +150,30 @@ function App(): React.ReactElement {
         trashed: trashView,
       }),
     ])
+    let realEntries = e.length > 0 ? e : MOCK_ENTRIES
+    const realTags = t.length > 0 ? t : MOCK_TAGS
+
+    // Multi-tag filter (AND logic) for real data
+    if (activeTagFilters.length > 0) {
+      const filterTagNames = activeTagFilters
+        .map((id) => realTags.find((t) => t.id === id)?.name)
+        .filter(Boolean) as string[]
+      realEntries = realEntries.filter((entry) =>
+        filterTagNames.every((name) => entry.tags.includes(name))
+      )
+    }
+
+    // Sort
+    realEntries = sortEntries(realEntries, sortOrder)
+
     setFolders(f.length > 0 ? f : MOCK_FOLDERS)
-    setTags(t.length > 0 ? t : MOCK_TAGS)
-    setEntries(e.length > 0 ? e : MOCK_ENTRIES)
+    setTags(realTags)
+    setEntries(realEntries)
   }
 
   useEffect(() => {
     loadData()
-  }, [activeFolder, activeTag, searchQuery, trashView])
+  }, [activeFolder, activeTag, searchQuery, trashView, sortOrder, activeTagFilters])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
@@ -179,12 +226,6 @@ function App(): React.ReactElement {
 
   return (
     <div className={cn("h-screen w-screen flex flex-col overflow-hidden bg-background", isDark && "dark")}>
-      <TitleBar
-        isDark={isDark}
-        onToggleTheme={toggleTheme}
-        onAddUrl={() => setUrlDialogOpen(true)}
-        onAddImage={() => setImageDialogOpen(true)}
-      />
       <SidebarProvider className="flex-1 w-full min-h-0">
         <Sidebar
           folders={folders}
@@ -226,15 +267,30 @@ function App(): React.ReactElement {
             onUrlDialogOpenChange={setUrlDialogOpen}
             imageDialogOpen={imageDialogOpen}
             onImageDialogOpenChange={setImageDialogOpen}
+            sortOrder={sortOrder}
+            onSortOrderChange={setSortOrder}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            activeTagFilters={activeTagFilters}
+            onActiveTagFiltersChange={setActiveTagFilters}
           />
-          <DetailPane
-            entry={selectedEntry}
-            folders={folders}
-            tags={tags}
-            onUpdateEntry={handleUpdateEntry}
-            onDeleteEntry={handleDeleteEntry}
-            isDark={isDark}
-          />
+          <div className="flex-1 flex flex-col min-h-0">
+            <TitleBar
+              isDark={isDark}
+              onToggleTheme={toggleTheme}
+              trashView={trashView}
+              activeFolder={activeFolder}
+              activeTag={activeTag}
+              folders={folders}
+              tags={tags}
+            />
+            <DetailPane
+              entry={selectedEntry}
+              folders={folders}
+              onUpdateEntry={handleUpdateEntry}
+              onDeleteEntry={handleDeleteEntry}
+            />
+          </div>
         </SidebarInset>
       </SidebarProvider>
     </div>
