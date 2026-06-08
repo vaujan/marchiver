@@ -22,12 +22,14 @@ export interface Folder {
   id: number
   name: string
   parent_id: number | null
+  icon: string
 }
 
 export interface Tag {
   id: number
   name: string
   color: string
+  icon: string
 }
 
 export interface AddEntryPayload {
@@ -52,7 +54,6 @@ function App(): React.ReactElement {
 
   const loadData = async (): Promise<void> => {
     if (useMockData) {
-      // Filter mock data based on current filters
       let filteredEntries = trashView
         ? MOCK_TRASHED_ENTRIES
         : MOCK_ENTRIES.filter((entry) => !entry.is_deleted)
@@ -131,15 +132,23 @@ function App(): React.ReactElement {
     if (selectedEntry?.id === id) setSelectedEntry(null)
   }
 
-  const handleAddFolder = async (name: string): Promise<void> => {
-    const result = await window.electronAPI.addFolder(name)
-    setFolders((prev) => [...prev, result as Folder])
-  }
+	const handleAddFolder = async (payload: { name: string; parent_id?: number; icon?: string }): Promise<void> => {
+		try {
+			const result = await window.electronAPI.addFolder(payload)
+			setFolders((prev) => [...prev, result as Folder])
+		} catch (error) {
+			console.error('Failed to add folder:', error)
+		}
+	}
 
-  const handleAddTag = async (name: string): Promise<void> => {
-    const result = await window.electronAPI.addTag(name)
-    setTags((prev) => [...prev, result as Tag])
-  }
+	const handleAddTag = async (payload: { name: string; color?: string; icon?: string }): Promise<void> => {
+		try {
+			const result = await window.electronAPI.addTag(payload)
+			setTags((prev) => [...prev, result as Tag])
+		} catch (error) {
+			console.error('Failed to add tag:', error)
+		}
+	}
 
   return (
     <SidebarProvider className="h-screen w-screen">
