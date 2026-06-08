@@ -1,15 +1,8 @@
 import React from "react";
-import {
-	Menubar,
-	MenubarContent,
-	MenubarItem,
-	MenubarMenu,
-	MenubarSeparator,
-	MenubarTrigger,
-} from "@/components/ui/menubar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Minus, Square, X, Sun, Moon } from "@phosphor-icons/react";
+import type { Folder, Tag } from "../App";
 
 const platform = window.electronAPI.platform;
 const isMac = platform === "darwin";
@@ -17,9 +10,12 @@ const isMac = platform === "darwin";
 interface TitleBarProps {
 	isDark?: boolean;
 	onToggleTheme?: () => void;
-	onAddUrl?: () => void;
-	onAddImage?: () => void;
 	className?: string;
+	trashView?: boolean;
+	activeFolder?: number | null;
+	activeTag?: number | null;
+	folders?: Folder[];
+	tags?: Tag[];
 }
 
 const dragStyle: React.CSSProperties = {
@@ -61,55 +57,45 @@ const WindowControls: React.FC = () => (
 const TitleBar: React.FC<TitleBarProps> = ({
 	isDark,
 	onToggleTheme,
-	onAddUrl,
-	onAddImage,
 	className,
+	trashView = false,
+	activeFolder = null,
+	activeTag = null,
+	folders = [],
+	tags = [],
 }) => {
+	const breadcrumb = React.useMemo(() => {
+		if (trashView) return "Trash";
+		if (activeFolder !== null) {
+			const folder = folders.find((f) => f.id === activeFolder);
+			if (folder) return folder.name;
+		}
+		if (activeTag !== null) {
+			const tag = tags.find((t) => t.id === activeTag);
+			if (tag) return `Tag: ${tag.name}`;
+		}
+		return "All Items";
+	}, [trashView, activeFolder, activeTag, folders, tags]);
+
 	return (
 		<div
 			data-slot="titlebar"
 			className={cn(
-				"dark h-8 flex items-center bg-sidebar text-sidebar-foreground select-none",
+				"h-8 flex items-center border-b bg-card border-border/50 text-sidebar-foreground select-none",
 				className,
 			)}
 			style={dragStyle}
 		>
-			{/* Left: macOS traffic-light padding + menubar */}
+			{/* Left: breadcrumb path */}
 			<div
 				className={cn(
 					"flex items-center flex-1 h-full gap-1",
-					isMac ? "pl-[80px]" : "pl-2",
+					isMac ? "pl-[80px]" : "pl-3",
 				)}
 			>
-				<Menubar
-					className="border-0 bg-transparent p-0 rounded-none h-7 gap-0"
-					style={noDragStyle}
-				>
-					<MenubarMenu>
-						<MenubarTrigger className="rounded-md px-2.5 py-0.5 text-[13px] font-medium text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-foreground">
-							File
-						</MenubarTrigger>
-						<MenubarContent className="min-w-40">
-							<MenubarItem onSelect={onAddUrl}>Add URL</MenubarItem>
-							<MenubarItem onSelect={onAddImage}>Add Image</MenubarItem>
-							<MenubarSeparator />
-							<MenubarItem onSelect={() => window.electronAPI.closeWindow()}>
-								Exit
-							</MenubarItem>
-						</MenubarContent>
-					</MenubarMenu>
-
-					<MenubarMenu>
-						<MenubarTrigger className="rounded-md px-2.5 py-0.5 text-[13px] font-medium text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-foreground">
-							View
-						</MenubarTrigger>
-						<MenubarContent className="min-w-40">
-							<MenubarItem onSelect={onToggleTheme}>
-								{isDark ? "Light Mode" : "Dark Mode"}
-							</MenubarItem>
-						</MenubarContent>
-					</MenubarMenu>
-				</Menubar>
+				<span className="text-[11px] font-medium text-sidebar-foreground/60 truncate">
+					{breadcrumb}
+				</span>
 			</div>
 
 			{/* Right: theme toggle + window controls */}
