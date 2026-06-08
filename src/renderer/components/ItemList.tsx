@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import type { Entry, Folder, Tag, AddEntryPayload } from "../App";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
@@ -33,9 +32,30 @@ import {
 	Link,
 	Image,
 	MagnifyingGlass,
-	NotePencil,
-	CaretDown,
+	SortAscending,
+	Tag,
+	Rows,
+	SquaresFour,
+	Plus,
+	X,
 } from "@phosphor-icons/react";
+import {
+	DropdownMenu,
+	DropdownMenuTrigger,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
+	DropdownMenuCheckboxItem,
+	DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
+import {
+	Tooltip,
+	TooltipTrigger,
+	TooltipContent,
+	TooltipProvider,
+} from "@/components/ui/tooltip";
 
 interface ItemListProps {
 	entries: Entry[];
@@ -53,6 +73,12 @@ interface ItemListProps {
 	onUrlDialogOpenChange?: (open: boolean) => void;
 	imageDialogOpen?: boolean;
 	onImageDialogOpenChange?: (open: boolean) => void;
+	sortOrder: 'newest' | 'oldest' | 'alphabetical' | 'type';
+	onSortOrderChange: (order: 'newest' | 'oldest' | 'alphabetical' | 'type') => void;
+	viewMode: 'expanded' | 'compact';
+	onViewModeChange: (mode: 'expanded' | 'compact') => void;
+	activeTagFilters: number[];
+	onActiveTagFiltersChange: (ids: number[]) => void;
 }
 
 // Format date relative to now (like "Yesterday", "Just now", etc.)
@@ -77,6 +103,41 @@ const formatRelativeDate = (dateString: string): string => {
 	return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 };
 
+const dragStyle: React.CSSProperties = {
+	WebkitAppRegion: "drag",
+} as React.CSSProperties;
+const noDragStyle: React.CSSProperties = {
+	WebkitAppRegion: "no-drag",
+} as React.CSSProperties;
+
+const TagSelector: React.FC<{
+	tags: Tag[];
+	selectedIds: number[];
+	onChange: (ids: number[]) => void;
+}> = ({ tags, selectedIds, onChange }) => (
+	<div className="flex flex-wrap gap-1.5">
+		{tags.map((tag) => {
+			const isSelected = selectedIds.includes(tag.id);
+			return (
+				<Badge
+					key={tag.id}
+					variant={isSelected ? "default" : "outline"}
+					className="cursor-pointer"
+					onClick={() => {
+						if (selectedIds.includes(tag.id)) {
+							onChange(selectedIds.filter((id) => id !== tag.id));
+						} else {
+							onChange([...selectedIds, tag.id]);
+						}
+					}}
+				>
+					# {tag.name}
+				</Badge>
+			);
+		})}
+	</div>
+);
+
 const ItemList: React.FC<ItemListProps> = ({
 	entries,
 	selectedEntry,
@@ -93,10 +154,31 @@ const ItemList: React.FC<ItemListProps> = ({
 	onUrlDialogOpenChange,
 	imageDialogOpen: imageDialogOpenProp,
 	onImageDialogOpenChange,
+	sortOrder,
+	onSortOrderChange,
+	viewMode,
+	onViewModeChange,
+	activeTagFilters,
+	onActiveTagFiltersChange,
 }) => {
 	const [internalUrlDialogOpen, setInternalUrlDialogOpen] = useState(false);
 	const [internalImageDialogOpen, setInternalImageDialogOpen] = useState(false);
-	const [searchMode, setSearchMode] = useState(false);
+
+	// Local search input state with debounced sync to parent
+	const [searchInput, setSearchInput] = useState(searchQuery);
+
+	useEffect(() => {
+		setSearchInput(searchQuery);
+	}, [searchQuery]);
+
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			if (searchInput !== searchQuery) {
+				onSearchChange(searchInput);
+			}
+		}, 150);
+		return () => clearTimeout(timer);
+	}, [searchInput, searchQuery, onSearchChange]);
 
 	const urlDialogOpen = urlDialogOpenProp ?? internalUrlDialogOpen;
 	const setUrlDialogOpen = (open: boolean) => {
@@ -202,150 +284,197 @@ const ItemList: React.FC<ItemListProps> = ({
 		resetImageForm();
 	};
 
-	const toggleTag = (
-		tagId: number,
-		currentIds: number[],
-		setIds: (ids: number[]) => void,
-	) => {
-		if (currentIds.includes(tagId)) {
-			setIds(currentIds.filter((id) => id !== tagId));
-		} else {
-			setIds([...currentIds, tagId]);
-		}
-	};
-
-	const TagSelector = ({
-		selectedIds,
-		onChange,
-	}: {
-		selectedIds: number[];
-		onChange: (ids: number[]) => void;
-	}) => (
-		<div className="flex flex-wrap gap-1.5">
-			{tags.map((tag) => {
-				const isSelected = selectedIds.includes(tag.id);
-				return (
-					<Badge
-						key={tag.id}
-						variant={isSelected ? "default" : "outline"}
-						className="cursor-pointer"
-						onClick={() => toggleTag(tag.id, selectedIds, onChange)}
-					>
-						# {tag.name}
-					</Badge>
-				);
-			})}
-		</div>
-	);
-
-	// Get current section name for the header
-	const getCurrentSectionName = () => {
-		if (trashView) return "Trash";
-		if (activeFolder !== null) {
-			const folder = folders.find((f) => f.id === activeFolder);
-			return folder?.name || "Folder";
-		}
-		if (activeTag !== null) {
-			const tag = tags.find((t) => t.id === a);
-			return tag?.name || "Tag";
-		}
-		return "All Items";
-	};
-
 	return (
-		<div className="w-[380px] min-w-[380px] border-r border-border flex flex-col h-full">
-			{/* Top bar - matching the screenshot style */}
-			<div className="px-4 py-3 flex items-center justify-between gap-3">
-				{/* Left: Section name with dropdown */}
-				<div className="flex items-center gap-1">
-					<span className="text-[15px] font-semibold text-foreground">
-						{getCurrentSectionName()}
-					</span>
-					<CaretDown className="size-4 text-muted-foreground" />
-				</div>
-
-				{/* Right: Action icons */}
-				<div className="flex items-center gap-2">
-					{/* Add button */}
-					<Dialog>
-						<DialogTrigger
-							render={
-								<Button
-									variant="ghost"
-									size="icon-sm"
-									className="text-muted-foreground hover:text-foreground"
-								/>
-							}
-						>
-							<NotePencil className="size-4" />
-						</DialogTrigger>
-						<DialogContent className="sm:max-w-sm">
-							<DialogHeader>
-								<DialogTitle>Add New</DialogTitle>
-							</DialogHeader>
-							<div className="flex flex-col gap-2 py-4">
-								<Button
-									variant="outline"
-									className="justify-start"
-									onClick={() => {
-										resetUrlForm();
-										setUrlDialogOpen(true);
-									}}
-								>
-									<Link data-icon="inline-start" />
-									Add URL
-								</Button>
-								<Button
-									variant="outline"
-									className="justify-start"
-									onClick={() => {
-										resetImageForm();
-										setImageDialogOpen(true);
-									}}
-								>
-									<Image data-icon="inline-start" />
-									Add Image
-								</Button>
-							</div>
-						</DialogContent>
-					</Dialog>
-
-					{/* Search toggle */}
-					<Button
-						variant="ghost"
-						size="icon-sm"
-						className={cn(
-							"text-muted-foreground hover:text-foreground",
-							searchMode && "bg-accent",
-						)}
-						onClick={() => setSearchMode(!searchMode)}
-					>
-						<MagnifyingGlass className="size-4" />
-					</Button>
-				</div>
-			</div>
-
-			{/* Search input - shown when search mode is active */}
-			{searchMode && (
-				<div className="px-4 py-2">
-					<InputGroup>
+		<div className="w-[380px] min-w-[380px] flex flex-col h-full">
+			{/* Toolbar */}
+			<div
+				className="h-10 px-3 flex items-center gap-2 border-b border-border/50"
+				style={dragStyle}
+			>
+				{/* Search */}
+				<div className="flex-1 min-w-0" style={noDragStyle}>
+					<InputGroup className="h-7 rounded-md">
 						<InputGroupAddon align="inline-start">
-							<MagnifyingGlass className="size-4 opacity-50" />
+							<MagnifyingGlass className="size-3.5 opacity-50" />
 						</InputGroupAddon>
 						<InputGroupInput
 							placeholder="Search..."
-							value={searchQuery}
-							onChange={(e) => onSearchChange(e.target.value)}
-							autoFocus
-							onBlur={() => {
-								if (!searchQuery) {
-									setSearchMode(false);
-								}
-							}}
+							value={searchInput}
+							onChange={(e) => setSearchInput(e.target.value)}
+							className="h-7 text-xs"
 						/>
+						{searchInput && (
+							<InputGroupAddon align="inline-end">
+								<button
+									onClick={() => setSearchInput('')}
+									className="flex items-center justify-center opacity-50 hover:opacity-100"
+									type="button"
+								>
+									<X className="size-3.5" />
+								</button>
+							</InputGroupAddon>
+						)}
 					</InputGroup>
 				</div>
-			)}
+
+				{/* Icon buttons */}
+				<div className="flex items-center gap-0.5" style={noDragStyle}>
+					<TooltipProvider>
+						{/* Sort */}
+						<DropdownMenu>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<DropdownMenuTrigger asChild>
+										<Button variant="ghost" size="icon-sm">
+											<SortAscending className="size-4" />
+										</Button>
+									</DropdownMenuTrigger>
+								</TooltipTrigger>
+								<TooltipContent>Sort</TooltipContent>
+							</Tooltip>
+							<DropdownMenuContent align="end">
+								<DropdownMenuLabel inset>Sort by</DropdownMenuLabel>
+								<DropdownMenuRadioGroup
+									value={sortOrder}
+									onValueChange={(v) =>
+										onSortOrderChange(v as typeof sortOrder)
+									}
+								>
+									<DropdownMenuRadioItem value="newest">
+										Newest
+									</DropdownMenuRadioItem>
+									<DropdownMenuRadioItem value="oldest">
+										Oldest
+									</DropdownMenuRadioItem>
+									<DropdownMenuRadioItem value="alphabetical">
+										Alphabetical
+									</DropdownMenuRadioItem>
+									<DropdownMenuRadioItem value="type">
+										By type
+									</DropdownMenuRadioItem>
+								</DropdownMenuRadioGroup>
+							</DropdownMenuContent>
+						</DropdownMenu>
+
+						{/* Tag Filter */}
+						<DropdownMenu>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<DropdownMenuTrigger asChild>
+										<Button variant="ghost" size="icon-sm">
+											<Tag className="size-4" />
+											{activeTagFilters.length > 0 && (
+												<span className="absolute top-1 right-1 size-1.5 rounded-full bg-primary" />
+											)}
+										</Button>
+									</DropdownMenuTrigger>
+								</TooltipTrigger>
+								<TooltipContent>Filter tags</TooltipContent>
+							</Tooltip>
+							<DropdownMenuContent align="end" className="max-h-64 overflow-y-auto">
+								<DropdownMenuLabel inset>Filter by tags</DropdownMenuLabel>
+								{tags.length === 0 && (
+									<DropdownMenuItem disabled>
+										No tags available
+									</DropdownMenuItem>
+								)}
+								{tags.map((tag) => (
+									<DropdownMenuCheckboxItem
+										key={tag.id}
+										checked={activeTagFilters.includes(tag.id)}
+										onCheckedChange={() => {
+											if (activeTagFilters.includes(tag.id)) {
+												onActiveTagFiltersChange(
+													activeTagFilters.filter((id) => id !== tag.id)
+												);
+											} else {
+												onActiveTagFiltersChange([
+													...activeTagFilters,
+													tag.id,
+												]);
+											}
+										}}
+									>
+										<span className="flex items-center gap-2">
+											<span
+												className="size-2 rounded-full"
+												style={{ backgroundColor: tag.color }}
+											/>
+											{tag.name}
+										</span>
+									</DropdownMenuCheckboxItem>
+								))}
+								{activeTagFilters.length > 0 && (
+									<>
+										<DropdownMenuSeparator />
+										<DropdownMenuItem
+											onClick={() => onActiveTagFiltersChange([])}
+										>
+											Clear filters
+										</DropdownMenuItem>
+									</>
+								)}
+							</DropdownMenuContent>
+						</DropdownMenu>
+
+						{/* View Toggle */}
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon-sm"
+									onClick={() =>
+										onViewModeChange(
+											viewMode === 'expanded' ? 'compact' : 'expanded'
+										)
+									}
+								>
+									{viewMode === 'expanded' ? (
+										<Rows className="size-4" />
+									) : (
+										<SquaresFour className="size-4" />
+									)}
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								{viewMode === 'expanded' ? 'Compact view' : 'Expanded view'}
+							</TooltipContent>
+						</Tooltip>
+
+						{/* Add Dropdown */}
+						<DropdownMenu>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<DropdownMenuTrigger asChild>
+										<Button variant="ghost" size="icon-sm">
+											<Plus className="size-4" />
+										</Button>
+									</DropdownMenuTrigger>
+								</TooltipTrigger>
+								<TooltipContent>Add</TooltipContent>
+							</Tooltip>
+							<DropdownMenuContent align="end">
+								<DropdownMenuItem
+									onClick={() => {
+										setUrlDialogOpen(true);
+									}}
+								>
+									<Link className="size-4" />
+									Add URL
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									onClick={() => {
+										setImageDialogOpen(true);
+									}}
+								>
+									<Image className="size-4" />
+									Add Image
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</TooltipProvider>
+				</div>
+			</div>
 
 			{/* Add URL Dialog */}
 			<Dialog open={urlDialogOpen} onOpenChange={setUrlDialogOpen}>
@@ -397,7 +526,7 @@ const ItemList: React.FC<ItemListProps> = ({
 						</Field>
 						<Field>
 							<FieldLabel>Tags</FieldLabel>
-							<TagSelector selectedIds={urlTagIds} onChange={setUrlTagIds} />
+							<TagSelector tags={tags} selectedIds={urlTagIds} onChange={setUrlTagIds} />
 						</Field>
 						<Field orientation="horizontal">
 							<Checkbox
@@ -502,6 +631,7 @@ const ItemList: React.FC<ItemListProps> = ({
 						<Field>
 							<FieldLabel>Tags</FieldLabel>
 							<TagSelector
+								tags={tags}
 								selectedIds={imageTagIds}
 								onChange={setImageTagIds}
 							/>
@@ -529,33 +659,47 @@ const ItemList: React.FC<ItemListProps> = ({
 
 			<ScrollArea className="flex-1 min-h-0 overflow-x-hidden">
 				<div className="flex flex-col divide-y divide-border/40">
+					{entries.length === 0 && (
+						<div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+							<p className="text-sm">No results</p>
+						</div>
+					)}
 					{entries.map((entry) => {
 						const isSelected = selectedEntry?.id === entry.id;
 						const hasImage = entry.screenshot_path || entry.type === "image";
+						const isCompact = viewMode === 'compact';
 
 						return (
 							<div
 								key={entry.id}
 								onClick={() => onSelectEntry(entry)}
-								className="group cursor-pointer p-4 transition-all hover:bg-muted/50 data-[selected=true]:bg-accent"
+								className={cn(
+									"group cursor-pointer transition-all hover:bg-muted/50 data-[selected=true]:bg-accent",
+									isCompact ? "px-3 py-2" : "px-4 py-4"
+								)}
 								data-selected={isSelected}
 							>
 								{/* Title */}
-								<h3 className="text-[15px] font-semibold leading-snug text-foreground mb-1">
+								<h3 className={cn(
+									"font-semibold leading-snug text-foreground",
+									isCompact ? "text-[13px] mb-0.5" : "text-[15px] mb-1"
+								)}>
 									{entry.title}
 								</h3>
 
 								{/* Description with inline tags */}
-								<p className="text-[13px] leading-relaxed text-muted-foreground line-clamp-2 mb-2">
-									{entry.tags.length > 0 && (
-										<span>{entry.tags.map((tag) => `#${tag}`).join(" ")}</span>
-									)}
-									{entry.tags.length > 0 && " "}
-									{entry.source_url || entry.title}
-								</p>
+								{!isCompact && (
+									<p className="text-[13px] leading-relaxed text-muted-foreground line-clamp-2 mb-2">
+										{entry.tags.length > 0 && (
+											<span>{entry.tags.map((tag) => `#${tag}`).join(" ")}</span>
+										)}
+										{entry.tags.length > 0 && " "}
+										{entry.source_url || entry.title}
+									</p>
+								)}
 
 								{/* Optional image thumbnail */}
-								{hasImage && (
+								{hasImage && !isCompact && (
 									<div className="mb-2 overflow-hidden rounded-lg">
 										<img
 											src={entry.screenshot_path || entry.source_url || ""}
@@ -568,9 +712,15 @@ const ItemList: React.FC<ItemListProps> = ({
 									</div>
 								)}
 
-								{/* Date */}
-								<div className="flex items-center gap-1 text-[12px] text-muted-foreground">
+								{/* Date and tags (compact) */}
+								<div className="flex items-center gap-2 text-[12px] text-muted-foreground">
 									<span>{formatRelativeDate(entry.created_at)}</span>
+									{isCompact && entry.tags.length > 0 && (
+										<span className="truncate">
+											{entry.tags.slice(0, 2).map((tag) => `#${tag}`).join(" ")}
+											{entry.tags.length > 2 && " ..."}
+										</span>
+									)}
 								</div>
 							</div>
 						);
