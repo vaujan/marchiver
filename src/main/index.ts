@@ -16,19 +16,30 @@ import {
 
 let mainWindow: BrowserWindow | null
 
+const isMac = process.platform === 'darwin'
+
 function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     minWidth: 960,
     minHeight: 600,
-    titleBarStyle: 'hiddenInset',
+    titleBarStyle: isMac ? 'hiddenInset' : 'default',
+    frame: isMac,
+    ...(isMac
+      ? {}
+      : {
+          titleBarOverlay: false,
+        }),
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
   })
+
+  // On macOS, hiddenInset keeps traffic lights visible inside content.
+  // On Windows/Linux, frame:false gives us a completely chromeless window.
 
   if (process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
@@ -156,4 +167,21 @@ ipcMain.handle('get-entry', async (_event, id: number) => {
 
 ipcMain.handle('open-external', async (_event, url: string) => {
   await shell.openExternal(url)
+})
+
+// Window controls
+ipcMain.handle('minimize-window', () => {
+  mainWindow?.minimize()
+})
+
+ipcMain.handle('maximize-window', () => {
+  if (mainWindow?.isMaximized()) {
+    mainWindow.unmaximize()
+  } else {
+    mainWindow?.maximize()
+  }
+})
+
+ipcMain.handle('close-window', () => {
+  mainWindow?.close()
 })

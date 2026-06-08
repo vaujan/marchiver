@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 
 export interface IElectronAPI {
+  platform: string
   getFolders: () => Promise<Array<{ id: number; name: string; parent_id: number | null; icon: string }>>
   getTags: () => Promise<Array<{ id: number; name: string; color: string; icon: string }>>
   getEntries: (filters: { folderId?: number; tagId?: number; search?: string; trashed?: boolean }) => Promise<Array<{
@@ -56,6 +57,9 @@ export interface IElectronAPI {
   captureScreenshot: (url: string) => Promise<{ success: boolean; path: string | null; error?: string }>
   pickImage: () => Promise<string | null>
   openExternal: (url: string) => Promise<void>
+  minimizeWindow: () => Promise<void>
+  maximizeWindow: () => Promise<void>
+  closeWindow: () => Promise<void>
 }
 
 declare global {
@@ -65,6 +69,7 @@ declare global {
 }
 
 const api: IElectronAPI = {
+  platform: process.platform,
   getFolders: () => ipcRenderer.invoke('get-folders'),
   getTags: () => ipcRenderer.invoke('get-tags'),
   getEntries: (filters) => ipcRenderer.invoke('get-entries', filters),
@@ -77,6 +82,9 @@ const api: IElectronAPI = {
   captureScreenshot: (url) => ipcRenderer.invoke('capture-screenshot', url),
   pickImage: () => ipcRenderer.invoke('pick-image'),
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
+  minimizeWindow: () => ipcRenderer.invoke('minimize-window'),
+  maximizeWindow: () => ipcRenderer.invoke('maximize-window'),
+  closeWindow: () => ipcRenderer.invoke('close-window'),
 }
 
 contextBridge.exposeInMainWorld('electronAPI', api)

@@ -2,6 +2,7 @@
 
 interface Window {
   electronAPI: {
+    platform: string
     getFolders: () => Promise<Array<{ id: number; name: string; parent_id: number | null; icon: string }>>
     getTags: () => Promise<Array<{ id: number; name: string; color: string; icon: string }>>
     getEntries: (filters: { folderId?: number; tagId?: number; search?: string; trashed?: boolean }) => Promise<Array<{
@@ -57,5 +58,8 @@ interface Window {
     captureScreenshot: (url: string) => Promise<{ success: boolean; path: string | null; error?: string }>
     pickImage: () => Promise<string | null>
     openExternal: (url: string) => Promise<void>
+    minimizeWindow: () => Promise<void>
+    maximizeWindow: () => Promise<void>
+    closeWindow: () => Promise<void>
   }
 }
