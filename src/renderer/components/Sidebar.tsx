@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import {
 	Sidebar,
 	SidebarContent,
+	SidebarFooter,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
@@ -77,6 +78,7 @@ import {
 	MagnifyingGlass,
 	CaretRight,
 	CaretDown,
+	Plus,
 } from "@phosphor-icons/react";
 
 interface SidebarProps {
@@ -419,6 +421,17 @@ const SidebarComponent: React.FC<SidebarProps> = ({
 					</SidebarMenu>
 				</ScrollArea>
 			</SidebarContent>
+
+			<SidebarFooter className="px-3 py-2 shrink-0">
+				<Button
+					variant="ghost"
+					className="w-full justify-start gap-2 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-sm"
+					onClick={() => setFolderDialogOpen(true)}
+				>
+					<Plus className="size-4" />
+					New collection...
+				</Button>
+			</SidebarFooter>
 
 			{/* New Folder Dialog */}
 			<Dialog open={folderDialogOpen} onOpenChange={setFolderDialogOpen}>
