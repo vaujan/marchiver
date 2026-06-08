@@ -4,7 +4,7 @@ import Sidebar from './components/Sidebar'
 import ItemList from './components/ItemList'
 import DetailPane from './components/DetailPane'
 import { MOCK_FOLDERS, MOCK_TAGS, MOCK_ENTRIES, MOCK_TRASHED_ENTRIES } from './lib/mock-data'
-import { Badge } from '@/components/ui/badge'
+
 
 export interface Entry {
   id: number
@@ -160,19 +160,22 @@ function App(): React.ReactElement {
         trashView={trashView}
         onSelectFolder={setActiveFolder}
         onSelectTag={setActiveTag}
-        onSelectTrash={() => { setTrashView(true); setActiveFolder(null); setActiveTag(null); setSelectedEntry(null) }}
-        onSelectAll={() => { setTrashView(false); setActiveFolder(null); setActiveTag(null); setSelectedEntry(null) }}
+        onSelectTrash={() => {
+          setTrashView(true)
+          setActiveFolder(null)
+          setActiveTag(null)
+          setSelectedEntry(null)
+        }}
+        onSelectAll={() => {
+          setTrashView(false)
+          setActiveFolder(null)
+          setActiveTag(null)
+          setSelectedEntry(null)
+        }}
         onAddFolder={handleAddFolder}
         onAddTag={handleAddTag}
       />
-      <SidebarInset className="flex flex-row overflow-hidden relative">
-        <Badge
-          variant={useMockData ? 'default' : 'outline'}
-          className="absolute top-2 right-2 z-50 cursor-pointer select-none"
-          onClick={() => setUseMockData((prev) => !prev)}
-        >
-          {useMockData ? 'MOCK DATA' : 'LIVE DATA'}
-        </Badge>
+      <SidebarInset className="flex flex-row h-full w-full overflow-hidden">
         <ItemList
           entries={entries}
           selectedEntry={selectedEntry}
