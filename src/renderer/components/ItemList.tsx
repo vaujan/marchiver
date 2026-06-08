@@ -24,7 +24,11 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group";
+import {
+	InputGroup,
+	InputGroupInput,
+	InputGroupAddon,
+} from "@/components/ui/input-group";
 import {
 	Link,
 	Image,
@@ -45,6 +49,10 @@ interface ItemListProps {
 	activeFolder: number | null;
 	activeTag: number | null;
 	trashView: boolean;
+	urlDialogOpen?: boolean;
+	onUrlDialogOpenChange?: (open: boolean) => void;
+	imageDialogOpen?: boolean;
+	onImageDialogOpenChange?: (open: boolean) => void;
 }
 
 // Format date relative to now (like "Yesterday", "Just now", etc.)
@@ -81,10 +89,28 @@ const ItemList: React.FC<ItemListProps> = ({
 	activeFolder,
 	activeTag,
 	trashView,
+	urlDialogOpen: urlDialogOpenProp,
+	onUrlDialogOpenChange,
+	imageDialogOpen: imageDialogOpenProp,
+	onImageDialogOpenChange,
 }) => {
-	const [urlDialogOpen, setUrlDialogOpen] = useState(false);
-	const [imageDialogOpen, setImageDialogOpen] = useState(false);
+	const [internalUrlDialogOpen, setInternalUrlDialogOpen] = useState(false);
+	const [internalImageDialogOpen, setInternalImageDialogOpen] = useState(false);
 	const [searchMode, setSearchMode] = useState(false);
+
+	const urlDialogOpen = urlDialogOpenProp ?? internalUrlDialogOpen;
+	const setUrlDialogOpen = (open: boolean) => {
+		onUrlDialogOpenChange
+			? onUrlDialogOpenChange(open)
+			: setInternalUrlDialogOpen(open);
+	};
+
+	const imageDialogOpen = imageDialogOpenProp ?? internalImageDialogOpen;
+	const setImageDialogOpen = (open: boolean) => {
+		onImageDialogOpenChange
+			? onImageDialogOpenChange(open)
+			: setInternalImageDialogOpen(open);
+	};
 
 	// Add URL form state
 	const [urlTitle, setUrlTitle] = useState("");
@@ -205,8 +231,7 @@ const ItemList: React.FC<ItemListProps> = ({
 						className="cursor-pointer"
 						onClick={() => toggleTag(tag.id, selectedIds, onChange)}
 					>
-						#{" "}
-						{tag.name}
+						# {tag.name}
 					</Badge>
 				);
 			})}
@@ -221,14 +246,14 @@ const ItemList: React.FC<ItemListProps> = ({
 			return folder?.name || "Folder";
 		}
 		if (activeTag !== null) {
-			const tag = tags.find((t) => t.id === activeTag);
+			const tag = tags.find((t) => t.id === a);
 			return tag?.name || "Tag";
 		}
 		return "All Items";
 	};
 
 	return (
-		<div className="w-[380px] min-w-[380px] bg-card border-r border-border flex flex-col h-full">
+		<div className="w-[380px] min-w-[380px] border-r border-border flex flex-col h-full">
 			{/* Top bar - matching the screenshot style */}
 			<div className="px-4 py-3 flex items-center justify-between gap-3">
 				{/* Left: Section name with dropdown */}
@@ -291,7 +316,7 @@ const ItemList: React.FC<ItemListProps> = ({
 						size="icon-sm"
 						className={cn(
 							"text-muted-foreground hover:text-foreground",
-							searchMode && "bg-accent"
+							searchMode && "bg-accent",
 						)}
 						onClick={() => setSearchMode(!searchMode)}
 					>
@@ -523,9 +548,7 @@ const ItemList: React.FC<ItemListProps> = ({
 								{/* Description with inline tags */}
 								<p className="text-[13px] leading-relaxed text-muted-foreground line-clamp-2 mb-2">
 									{entry.tags.length > 0 && (
-										<span>
-											{entry.tags.map((tag) => `#${tag}`).join(" ")}
-										</span>
+										<span>{entry.tags.map((tag) => `#${tag}`).join(" ")}</span>
 									)}
 									{entry.tags.length > 0 && " "}
 									{entry.source_url || entry.title}

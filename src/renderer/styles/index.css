@@ -137,6 +137,11 @@
     cursor: pointer;
   }
 
+  ::selection {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+
   html {
     font-family: var(--font-sans);
   }

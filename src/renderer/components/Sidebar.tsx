@@ -445,16 +445,16 @@ const SidebarComponent: React.FC<SidebarProps> = ({
 								<SelectTrigger>
 									<SelectValue placeholder="No parent" />
 								</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="">No parent</SelectItem>
-										{folders
-											.filter((folder) => folder.parent_id === null)
-											.map((folder) => (
-												<SelectItem key={folder.id} value={String(folder.id)}>
-													{folder.name}
-												</SelectItem>
-											))}
-									</SelectContent>
+								<SelectContent>
+									<SelectItem value="">No parent</SelectItem>
+									{folders
+										.filter((folder) => folder.parent_id === null)
+										.map((folder) => (
+											<SelectItem key={folder.id} value={String(folder.id)}>
+												{folder.name}
+											</SelectItem>
+										))}
+								</SelectContent>
 							</Select>
 						</Field>
 						<Field>

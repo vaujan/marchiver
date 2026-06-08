@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import Sidebar from './components/Sidebar'
 import ItemList from './components/ItemList'
 import DetailPane from './components/DetailPane'
+import TitleBar from './components/TitleBar'
+import { cn } from '@/lib/utils'
 import { MOCK_FOLDERS, MOCK_TAGS, MOCK_ENTRIES, MOCK_TRASHED_ENTRIES } from './lib/mock-data'
 
 
@@ -51,6 +53,31 @@ function App(): React.ReactElement {
   const [searchQuery, setSearchQuery] = useState('')
   const [trashView, setTrashView] = useState(false)
   const [useMockData, setUseMockData] = useState(true)
+
+  // Theme state
+  const [isDark, setIsDark] = useState(() => {
+    try {
+      return window.localStorage.getItem('marchiver-theme') === 'dark'
+    } catch {
+      return false
+    }
+  })
+
+  const toggleTheme = useCallback(() => {
+    setIsDark((prev) => {
+      const next = !prev
+      try {
+        window.localStorage.setItem('marchiver-theme', next ? 'dark' : 'light')
+      } catch {
+        // ignore
+      }
+      return next
+    })
+  }, [])
+
+  // Dialog state (lifted from ItemList for menu bar access)
+  const [urlDialogOpen, setUrlDialogOpen] = useState(false)
+  const [imageDialogOpen, setImageDialogOpen] = useState(false)
 
   const loadData = async (): Promise<void> => {
     if (useMockData) {
@@ -151,53 +178,66 @@ function App(): React.ReactElement {
 	}
 
   return (
-    <SidebarProvider className="h-screen w-screen">
-      <Sidebar
-        folders={folders}
-        tags={tags}
-        activeFolder={activeFolder}
-        activeTag={activeTag}
-        trashView={trashView}
-        onSelectFolder={setActiveFolder}
-        onSelectTag={setActiveTag}
-        onSelectTrash={() => {
-          setTrashView(true)
-          setActiveFolder(null)
-          setActiveTag(null)
-          setSelectedEntry(null)
-        }}
-        onSelectAll={() => {
-          setTrashView(false)
-          setActiveFolder(null)
-          setActiveTag(null)
-          setSelectedEntry(null)
-        }}
-        onAddFolder={handleAddFolder}
-        onAddTag={handleAddTag}
+    <div className={cn("h-screen w-screen flex flex-col overflow-hidden bg-background", isDark && "dark")}>
+      <TitleBar
+        isDark={isDark}
+        onToggleTheme={toggleTheme}
+        onAddUrl={() => setUrlDialogOpen(true)}
+        onAddImage={() => setImageDialogOpen(true)}
       />
-      <SidebarInset className="flex flex-row h-full w-full overflow-hidden">
-        <ItemList
-          entries={entries}
-          selectedEntry={selectedEntry}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onSelectEntry={setSelectedEntry}
-          onAddEntry={handleAddEntry}
+      <SidebarProvider className="flex-1 w-full min-h-0">
+        <Sidebar
           folders={folders}
           tags={tags}
           activeFolder={activeFolder}
           activeTag={activeTag}
           trashView={trashView}
+          onSelectFolder={setActiveFolder}
+          onSelectTag={setActiveTag}
+          onSelectTrash={() => {
+            setTrashView(true)
+            setActiveFolder(null)
+            setActiveTag(null)
+            setSelectedEntry(null)
+          }}
+          onSelectAll={() => {
+            setTrashView(false)
+            setActiveFolder(null)
+            setActiveTag(null)
+            setSelectedEntry(null)
+          }}
+          onAddFolder={handleAddFolder}
+          onAddTag={handleAddTag}
         />
-        <DetailPane
-          entry={selectedEntry}
-          folders={folders}
-          tags={tags}
-          onUpdateEntry={handleUpdateEntry}
-          onDeleteEntry={handleDeleteEntry}
-        />
-      </SidebarInset>
-    </SidebarProvider>
+        <SidebarInset className="flex flex-row h-full w-full overflow-hidden">
+          <ItemList
+            entries={entries}
+            selectedEntry={selectedEntry}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onSelectEntry={setSelectedEntry}
+            onAddEntry={handleAddEntry}
+            folders={folders}
+            tags={tags}
+            activeFolder={activeFolder}
+            activeTag={activeTag}
+            trashView={trashView}
+            urlDialogOpen={urlDialogOpen}
+            onUrlDialogOpenChange={setUrlDialogOpen}
+            imageDialogOpen={imageDialogOpen}
+            onImageDialogOpenChange={setImageDialogOpen}
+          />
+          <DetailPane
+            entry={selectedEntry}
+            folders={folders}
+            tags={tags}
+            onUpdateEntry={handleUpdateEntry}
+            onDeleteEntry={handleDeleteEntry}
+            isDark={isDark}
+          />
+        </SidebarInset>
+      </SidebarProvider>
+    </div>
   )
 }
 

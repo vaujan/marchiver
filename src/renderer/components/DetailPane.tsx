@@ -12,6 +12,7 @@ import {
 	EmptyTitle,
 	EmptyDescription,
 } from "@/components/ui/empty";
+import { cn } from "@/lib/utils";
 import { ArrowSquareOut, PencilSimple, Trash } from "@phosphor-icons/react";
 import bubuntuSvg from "@/assets/bubuntu-line.svg?url";
 
@@ -21,16 +22,18 @@ interface DetailPaneProps {
 	tags: Tag[];
 	onUpdateEntry: (id: number, updates: Partial<Entry>) => void;
 	onDeleteEntry: (id: number) => void;
+	isDark?: boolean;
 }
 
 const DetailPane: React.FC<DetailPaneProps> = ({
 	entry,
 	folders,
 	onDeleteEntry,
+	isDark,
 }) => {
 	if (!entry) {
 		return (
-			<Empty className="h-full bg-card flex-1 border-none rounded-none p-4">
+			<Empty className="h-full bg-card flex-1 rounded-none p-4">
 				<EmptyHeader className="gap-4 w-full max-w-none">
 					<EmptyTitle className="text-xl font-medium text-muted-foreground/70">
 						Nothing selected
@@ -42,7 +45,10 @@ const DetailPane: React.FC<DetailPaneProps> = ({
 						<img
 							src={bubuntuSvg}
 							alt=""
-							className="w-full h-full object-contain opacity-30"
+							className={cn(
+								"w-full h-full object-contain",
+								isDark ? "invert opacity-40" : "opacity-30",
+							)}
 						/>
 					</EmptyMedia>
 				</EmptyHeader>
