@@ -54,54 +54,77 @@ export function initDatabase(): Database.Database {
     );
   `)
 
+  // Migrate: add icon columns if missing
+  const folderCols = db.prepare("PRAGMA table_info(folders)").all() as Array<{ name: string }>
+  if (!folderCols.find((c) => c.name === 'icon')) {
+    db.exec("ALTER TABLE folders ADD COLUMN icon TEXT DEFAULT 'Folder'")
+  }
+
+  const tagCols = db.prepare("PRAGMA table_info(tags)").all() as Array<{ name: string }>
+  if (!tagCols.find((c) => c.name === 'icon')) {
+    db.exec("ALTER TABLE tags ADD COLUMN icon TEXT DEFAULT 'Hash'")
+  }
+
   // Seed default data if empty
   const folderCount = db.prepare('SELECT COUNT(*) as count FROM folders').get() as { count: number }
   if (folderCount.count === 0) {
-    const insertFolder = db.prepare('INSERT INTO folders (name, parent_id) VALUES (?, ?)')
-    insertFolder.run('Unorganized', null)
-    insertFolder.run('Inspiration', null)
-    insertFolder.run('Read Later', null)
-    insertFolder.run('Design', 2)
+    const insertFolder = db.prepare('INSERT INTO folders (name, parent_id, icon) VALUES (?, ?, ?)')
+    insertFolder.run('unorganized', null, 'Tray')
+    insertFolder.run('inspiration', null, 'Lightbulb')
+    insertFolder.run('read later', null, 'Bookmark')
+    insertFolder.run('design', 2, 'Palette')
   }
 
   const tagCount = db.prepare('SELECT COUNT(*) as count FROM tags').get() as { count: number }
   if (tagCount.count === 0) {
-    const insertTag = db.prepare('INSERT INTO tags (name, color) VALUES (?, ?)')
-    insertTag.run('design', '#e54d42')
-    insertTag.run('article', '#4a90d9')
-    insertTag.run('tool', '#7ed321')
-    insertTag.run('reference', '#f5a623')
+    const insertTag = db.prepare('INSERT INTO tags (name, color, icon) VALUES (?, ?, ?)')
+    insertTag.run('design', '#e54d42', 'Palette')
+    insertTag.run('article', '#4a90d9', 'Article')
+    insertTag.run('tool', '#7ed321', 'Wrench')
+    insertTag.run('reference', '#f5a623', 'BookBookmark')
   }
 
   return db
 }
 
 // Folders
-export function getFolders(): Array<{ id: number; name: string; parent_id: number | null }> {
-  return getDb().prepare('SELECT id, name, parent_id FROM folders ORDER BY id').all() as Array<{
+export function getFolders(): Array<{ id: number; name: string; parent_id: number | null; icon: string }> {
+  return getDb().prepare('SELECT id, name, parent_id, icon FROM folders ORDER BY id').all() as Array<{
     id: number
     name: string
     parent_id: number | null
+    icon: string
   }>
 }
 
-export function addFolder(name: string, parent_id: number | null = null): { id: number; name: string; parent_id: number | null } {
-  const result = getDb().prepare('INSERT INTO folders (name, parent_id) VALUES (?, ?)').run(name, parent_id)
-  return { id: Number(result.lastInsertRowid), name, parent_id }
+export function addFolder(name: string, parent_id: number | null = null, icon: string = 'Folder'): { id: number; name: string; parent_id: number | null; icon: string } {
+  // Only allow one level of nesting: parent must be a root folder
+  if (parent_id !== null) {
+    const parent = getDb().prepare('SELECT parent_id FROM folders WHERE id = ?').get(parent_id) as { parent_id: number | null } | undefined
+    if (!parent) {
+      throw new Error(`Parent folder ${parent_id} not found.`)
+    }
+    if (parent.parent_id !== null) {
+      throw new Error('Cannot nest a folder inside a nested folder. Only one level of nesting is allowed.')
+    }
+  }
+  const result = getDb().prepare('INSERT INTO folders (name, parent_id, icon) VALUES (?, ?, ?)').run(name, parent_id, icon)
+  return { id: Number(result.lastInsertRowid), name, parent_id, icon }
 }
 
 // Tags
-export function getTags(): Array<{ id: number; name: string; color: string }> {
-  return getDb().prepare('SELECT id, name, color FROM tags ORDER BY id').all() as Array<{
+export function getTags(): Array<{ id: number; name: string; color: string; icon: string }> {
+  return getDb().prepare('SELECT id, name, color, icon FROM tags ORDER BY id').all() as Array<{
     id: number
     name: string
     color: string
+    icon: string
   }>
 }
 
-export function addTag(name: string, color: string = '#e54d42'): { id: number; name: string; color: string } {
-  const result = getDb().prepare('INSERT INTO tags (name, color) VALUES (?, ?)').run(name, color)
-  return { id: Number(result.lastInsertRowid), name, color }
+export function addTag(name: string, color: string = '#e54d42', icon: string = 'Hash'): { id: number; name: string; color: string; icon: string } {
+  const result = getDb().prepare('INSERT INTO tags (name, color, icon) VALUES (?, ?, ?)').run(name, color, icon)
+  return { id: Number(result.lastInsertRowid), name, color, icon }
 }
 
 // Entries
