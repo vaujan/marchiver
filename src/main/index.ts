@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, protocol, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, protocol, shell, Menu } from 'electron'
 import path from 'node:path'
 import fs from 'node:fs'
 import {
@@ -47,6 +47,37 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'))
   }
+
+  // Handle zoom shortcuts directly to support both Ctrl/Cmd + = and Ctrl/Cmd + + reliably
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.type !== 'keyDown') return
+
+    const modifier = isMac ? input.meta : input.control
+    if (!modifier) return
+
+    // Zoom In: Ctrl/Cmd + = (no shift) OR Ctrl/Cmd + + (shift held)
+    if (input.key === '=' || input.key === '+') {
+      event.preventDefault()
+      const level = mainWindow!.webContents.getZoomLevel()
+      mainWindow!.webContents.setZoomLevel(level + 0.5)
+      return
+    }
+
+    // Zoom Out: Ctrl/Cmd + - (no shift)
+    if (input.key === '-' && !input.shift) {
+      event.preventDefault()
+      const level = mainWindow!.webContents.getZoomLevel()
+      mainWindow!.webContents.setZoomLevel(level - 0.5)
+      return
+    }
+
+    // Reset Zoom: Ctrl/Cmd + 0 (no shift)
+    if (input.key === '0' && !input.shift) {
+      event.preventDefault()
+      mainWindow!.webContents.setZoomLevel(0)
+      return
+    }
+  })
 }
 
 app.whenReady().then(() => {
@@ -61,6 +92,55 @@ app.whenReady().then(() => {
   initDatabase()
 
   createWindow()
+
+  // Set application menu with explicit zoom shortcuts so Ctrl/Cmd + + works reliably
+  const menu = Menu.buildFromTemplate([
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { type: 'separator' },
+        {
+          label: 'Zoom In',
+          accelerator: 'CmdOrCtrl+Plus',
+          click: () => {
+            const focused = BrowserWindow.getFocusedWindow()
+            if (focused) {
+              const level = focused.webContents.getZoomLevel()
+              focused.webContents.setZoomLevel(level + 0.5)
+            }
+          },
+        },
+        {
+          label: 'Zoom Out',
+          accelerator: 'CmdOrCtrl+-',
+          click: () => {
+            const focused = BrowserWindow.getFocusedWindow()
+            if (focused) {
+              const level = focused.webContents.getZoomLevel()
+              focused.webContents.setZoomLevel(level - 0.5)
+            }
+          },
+        },
+        {
+          label: 'Reset Zoom',
+          accelerator: 'CmdOrCtrl+0',
+          click: () => {
+            const focused = BrowserWindow.getFocusedWindow()
+            if (focused) {
+              focused.webContents.setZoomLevel(0)
+            }
+          },
+        },
+      ],
+    },
+  ])
+  Menu.setApplicationMenu(menu)
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
