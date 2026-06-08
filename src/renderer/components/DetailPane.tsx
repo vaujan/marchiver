@@ -1,5 +1,5 @@
 import React from "react";
-import type { Entry, Folder, Tag } from "../App";
+import type { Entry, Folder } from "../App";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,22 +14,19 @@ import {
 } from "@/components/ui/empty";
 import { cn } from "@/lib/utils";
 import { ArrowSquareOut, PencilSimple, Trash } from "@phosphor-icons/react";
-import bubuntuSvg from "@/assets/bubuntu-line.svg?url";
+import bubuntuSvg from "@/assets/bubuntu-line.svg?raw";
 
 interface DetailPaneProps {
 	entry: Entry | null;
 	folders: Folder[];
-	tags: Tag[];
 	onUpdateEntry: (id: number, updates: Partial<Entry>) => void;
 	onDeleteEntry: (id: number) => void;
-	isDark?: boolean;
 }
 
 const DetailPane: React.FC<DetailPaneProps> = ({
 	entry,
 	folders,
 	onDeleteEntry,
-	isDark,
 }) => {
 	if (!entry) {
 		return (
@@ -41,14 +38,10 @@ const DetailPane: React.FC<DetailPaneProps> = ({
 					<EmptyDescription className="text-base font-medium text-muted-foreground/70 max-w-[240px]">
 						Select an item from the list to preview and manage it here.
 					</EmptyDescription>
-					<EmptyMedia className="max-w-[280px] max-h-[800px]">
-						<img
-							src={bubuntuSvg}
-							alt=""
-							className={cn(
-								"w-full h-full object-contain",
-								isDark ? "invert opacity-40" : "opacity-30",
-							)}
+					<EmptyMedia className="max-w-[280px] max-h-[800px] w-full h-full">
+						<div
+							className="w-full h-full text-muted-foreground opacity-30"
+							dangerouslySetInnerHTML={{ __html: bubuntuSvg }}
 						/>
 					</EmptyMedia>
 				</EmptyHeader>
