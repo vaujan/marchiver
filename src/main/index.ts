@@ -85,12 +85,12 @@ ipcMain.handle('delete-entry', async (_event, id: number) => {
   return deleteEntry(id)
 })
 
-ipcMain.handle('add-folder', async (_event, name: string) => {
-  return addFolder(name)
+ipcMain.handle('add-folder', async (_event, { name, parent_id, icon }: { name: string; parent_id?: number; icon?: string }) => {
+  return addFolder(name, parent_id ?? null, icon ?? 'Folder')
 })
 
-ipcMain.handle('add-tag', async (_event, name: string) => {
-  return addTag(name)
+ipcMain.handle('add-tag', async (_event, { name, color, icon }: { name: string; color?: string; icon?: string }) => {
+  return addTag(name, color ?? '#e54d42', icon ?? 'Hash')
 })
 
 ipcMain.handle('capture-screenshot', async (_event, url: string) => {
