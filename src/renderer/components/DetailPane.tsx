@@ -55,21 +55,6 @@ const DetailPane: React.FC<DetailPaneProps> = ({
 	return (
 		<ScrollArea className="flex-1 bg-background">
 			<div className="flex flex-col bg-card">
-				{/* Preview Image */}
-				<div className="w-full aspect-video bg-muted flex items-center justify-center overflow-hidden border-b border-border">
-					{entry.screenshot_path ? (
-						<img
-							src={entry.screenshot_path}
-							alt={entry.title}
-							className="w-full h-full object-cover"
-						/>
-					) : (
-						<span className="text-sm text-muted-foreground">
-							No preview available
-						</span>
-					)}
-				</div>
-
 				{/* Content */}
 				<div className="p-5 flex flex-col gap-5">
 					{/* Title + Source */}
@@ -166,6 +151,21 @@ const DetailPane: React.FC<DetailPaneProps> = ({
 							Move to Trash
 						</Button>
 					</div>
+				</div>
+
+				{/* Preview Image */}
+				<div className="w-full aspect-video bg-muted flex items-center justify-center overflow-hidden border-t border-border">
+					{entry.screenshot_path ? (
+						<img
+							src={entry.screenshot_path}
+							alt={entry.title}
+							className="w-full h-full object-cover"
+						/>
+					) : (
+						<span className="text-sm text-muted-foreground">
+							No preview available
+						</span>
+					)}
 				</div>
 			</div>
 		</ScrollArea>
