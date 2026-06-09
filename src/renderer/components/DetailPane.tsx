@@ -28,17 +28,31 @@ const DetailPane: React.FC<DetailPaneProps> = ({
 	folders,
 	onDeleteEntry,
 }) => {
+	const platform = window.electronAPI.platform;
+	const isMac = platform === 'darwin';
+	const mod = isMac ? '⌘' : 'Ctrl';
+
 	if (!entry) {
 		return (
 			<Empty className="h-full bg-card flex-1 rounded-none p-4">
-				<EmptyHeader className="gap-4 w-full max-w-none">
+				<EmptyHeader className="gap-3 w-full max-w-none">
 					<EmptyTitle className="text-xl font-medium text-muted-foreground/70">
-						Nothing selected
+						Ready to capture?
 					</EmptyTitle>
-					<EmptyDescription className="text-base font-medium text-muted-foreground/70 max-w-[240px]">
-						Select an item from the list to preview and manage it here.
+					<EmptyDescription className="text-sm text-muted-foreground/70 max-w-[280px] leading-relaxed">
+						Select an item from the list to preview it.
+						<br />
+						Press{" "}
+						<Badge variant="outline" className="text-[10px] px-1 py-0 h-4 font-mono inline">
+							{mod}
+						</Badge>{" "}
+						+{" "}
+						<Badge variant="outline" className="text-[10px] px-1 py-0 h-4 font-mono inline">
+							N
+						</Badge>{" "}
+						to add a URL.
 					</EmptyDescription>
-					<EmptyMedia className="max-w-[280px] max-h-[800px] w-full h-full">
+					<EmptyMedia className="max-w-[220px] w-full mt-4">
 						<div
 							className="w-full h-full text-muted-foreground opacity-30"
 							dangerouslySetInnerHTML={{ __html: bubuntuSvg }}
