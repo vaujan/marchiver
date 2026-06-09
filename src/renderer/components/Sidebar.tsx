@@ -366,7 +366,7 @@ const SidebarComponent: React.FC<SidebarProps> = ({
 	return (
 		<Sidebar collapsible="none" className="dark">
 			<SidebarContent className="overflow-x-hidden">
-				<ScrollArea className="flex-1 h-full overflow-x-hidden p-3">
+				<ScrollArea className="flex-1 h-full overflow-x-hidden px-3 py-2">
 					<SidebarMenu className="gap-0">
 						{/* All Items */}
 						<SidebarMenuItem className="py-0">
