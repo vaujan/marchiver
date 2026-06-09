@@ -181,6 +181,11 @@ function App(): React.ReactElement {
         setSelectedEntry(null)
         const active = document.activeElement as HTMLElement | null
         active?.blur()
+        return
+      }
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'n' || e.key === 'N')) {
+        e.preventDefault()
+        setUrlDialogOpen(true)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -281,8 +286,21 @@ function App(): React.ReactElement {
               trashView={trashView}
               activeFolder={activeFolder}
               activeTag={activeTag}
+              selectedEntry={selectedEntry}
               folders={folders}
               tags={tags}
+              onNavigateToAll={() => {
+                setTrashView(false)
+                setActiveFolder(null)
+                setActiveTag(null)
+                setSelectedEntry(null)
+              }}
+              onNavigateToFolder={(folderId) => {
+                setTrashView(false)
+                setActiveFolder(folderId)
+                setActiveTag(null)
+                setSelectedEntry(null)
+              }}
             />
             <DetailPane
               entry={selectedEntry}
