@@ -33,7 +33,7 @@ import {
 	Image,
 	MagnifyingGlass,
 	SortAscending,
-	Tag,
+	Tag as TagIcon,
 	Rows,
 	SquaresFour,
 	Plus,
@@ -74,7 +74,9 @@ interface ItemListProps {
 	imageDialogOpen?: boolean;
 	onImageDialogOpenChange?: (open: boolean) => void;
 	sortOrder: 'newest' | 'oldest' | 'alphabetical' | 'type';
-	onSortOrderChange: (order: 'newest' | 'oldest' | 'alphabetical' | 'type') => void;
+	onSortOrderChange: (
+		order: 'newest' | 'oldest' | 'alphabetical' | 'type',
+	) => void;
 	viewMode: 'expanded' | 'compact';
 	onViewModeChange: (mode: 'expanded' | 'compact') => void;
 	activeTagFilters: number[];
@@ -293,7 +295,7 @@ const ItemList: React.FC<ItemListProps> = ({
 			>
 				{/* Search */}
 				<div className="flex-1 min-w-0" style={noDragStyle}>
-					<InputGroup className="h-7 rounded-md">
+					<InputGroup className="h-6 rounded-md">
 						<InputGroupAddon align="inline-start">
 							<MagnifyingGlass className="size-3.5 opacity-50" />
 						</InputGroupAddon>
@@ -362,7 +364,7 @@ const ItemList: React.FC<ItemListProps> = ({
 								<TooltipTrigger asChild>
 									<DropdownMenuTrigger asChild>
 										<Button variant="ghost" size="icon-sm">
-											<Tag className="size-4" />
+											<TagIcon className="size-4" />
 											{activeTagFilters.length > 0 && (
 												<span className="absolute top-1 right-1 size-1.5 rounded-full bg-primary" />
 											)}
@@ -371,7 +373,10 @@ const ItemList: React.FC<ItemListProps> = ({
 								</TooltipTrigger>
 								<TooltipContent>Filter tags</TooltipContent>
 							</Tooltip>
-							<DropdownMenuContent align="end" className="max-h-64 overflow-y-auto">
+							<DropdownMenuContent
+								align="end"
+								className="max-h-64 overflow-y-auto"
+							>
 								<DropdownMenuLabel inset>Filter by tags</DropdownMenuLabel>
 								{tags.length === 0 && (
 									<DropdownMenuItem disabled>
@@ -385,13 +390,10 @@ const ItemList: React.FC<ItemListProps> = ({
 										onCheckedChange={() => {
 											if (activeTagFilters.includes(tag.id)) {
 												onActiveTagFiltersChange(
-													activeTagFilters.filter((id) => id !== tag.id)
+													activeTagFilters.filter((id) => id !== tag.id),
 												);
 											} else {
-												onActiveTagFiltersChange([
-													...activeTagFilters,
-													tag.id,
-												]);
+												onActiveTagFiltersChange([...activeTagFilters, tag.id]);
 											}
 										}}
 									>
@@ -424,10 +426,10 @@ const ItemList: React.FC<ItemListProps> = ({
 									variant="ghost"
 									size="icon-sm"
 									onClick={() =>
-										onViewModeChange(
-											viewMode === 'expanded' ? 'compact' : 'expanded'
-										)
-									}
+									onViewModeChange(
+										viewMode === 'expanded' ? 'compact' : 'expanded',
+									)
+								}
 								>
 									{viewMode === 'expanded' ? (
 										<Rows className="size-4" />
@@ -526,7 +528,11 @@ const ItemList: React.FC<ItemListProps> = ({
 						</Field>
 						<Field>
 							<FieldLabel>Tags</FieldLabel>
-							<TagSelector tags={tags} selectedIds={urlTagIds} onChange={setUrlTagIds} />
+							<TagSelector
+								tags={tags}
+								selectedIds={urlTagIds}
+								onChange={setUrlTagIds}
+							/>
 						</Field>
 						<Field orientation="horizontal">
 							<Checkbox
@@ -658,32 +664,53 @@ const ItemList: React.FC<ItemListProps> = ({
 			</Dialog>
 
 			<ScrollArea className="flex-1 min-h-0 overflow-x-hidden">
-				<div className="flex flex-col divide-y divide-border/40">
+				<div className="flex flex-col divide-y divide-border">
 					{entries.length === 0 && (
-						<div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-							<p className="text-sm">No results</p>
+						<div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+							<MagnifyingGlass className="size-10 mb-4 opacity-30" />
+							{searchQuery ? (
+								<>
+									<p className="text-sm font-medium">No results for "{searchQuery}"</p>
+									<Button
+										variant="ghost"
+										size="sm"
+										className="mt-3 text-xs"
+										onClick={() => onSearchChange('')}
+									>
+										Clear search
+									</Button>
+								</>
+							) : trashView ? (
+								<p className="text-sm font-medium">Trash is empty</p>
+							) : activeFolder ? (
+								<p className="text-sm font-medium">No items in this folder</p>
+							) : (
+								<p className="text-sm font-medium">No items yet</p>
+							)}
 						</div>
 					)}
 					{entries.map((entry) => {
 						const isSelected = selectedEntry?.id === entry.id;
 						const hasImage = entry.screenshot_path || entry.type === "image";
-						const isCompact = viewMode === 'compact';
+						const isCompact = viewMode === "compact";
 
 						return (
 							<div
 								key={entry.id}
 								onClick={() => onSelectEntry(entry)}
-								className={cn(
-									"group cursor-pointer transition-all hover:bg-muted/50 data-[selected=true]:bg-accent",
-									isCompact ? "px-3 py-2" : "px-4 py-4"
-								)}
+							className={cn(
+								"group cursor-pointer border-l-[3px] border-l-transparent hover:bg-muted data-[selected=true]:bg-accent data-[selected=true]:border-l-primary",
+								isCompact ? "px-3 py-2" : "px-4 py-4",
+							)}
 								data-selected={isSelected}
 							>
 								{/* Title */}
-								<h3 className={cn(
-									"font-semibold leading-snug text-foreground",
-									isCompact ? "text-[13px] mb-0.5" : "text-[15px] mb-1"
-								)}>
+								<h3
+									className={cn(
+										"font-semibold leading-snug text-foreground",
+										isCompact ? "text-[13px] mb-0.5" : "text-[15px] mb-1",
+									)}
+								>
 									{entry.title}
 								</h3>
 
@@ -691,7 +718,9 @@ const ItemList: React.FC<ItemListProps> = ({
 								{!isCompact && (
 									<p className="text-[13px] leading-relaxed text-muted-foreground line-clamp-2 mb-2">
 										{entry.tags.length > 0 && (
-											<span>{entry.tags.map((tag) => `#${tag}`).join(" ")}</span>
+											<span>
+												{entry.tags.map((tag) => `#${tag}`).join(" ")}
+											</span>
 										)}
 										{entry.tags.length > 0 && " "}
 										{entry.source_url || entry.title}
@@ -717,7 +746,10 @@ const ItemList: React.FC<ItemListProps> = ({
 									<span>{formatRelativeDate(entry.created_at)}</span>
 									{isCompact && entry.tags.length > 0 && (
 										<span className="truncate">
-											{entry.tags.slice(0, 2).map((tag) => `#${tag}`).join(" ")}
+											{entry.tags
+												.slice(0, 2)
+												.map((tag) => `#${tag}`)
+												.join(" ")}
 											{entry.tags.length > 2 && " ..."}
 										</span>
 									)}
