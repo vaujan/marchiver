@@ -292,10 +292,29 @@ export function updateEntry(
   return { id, ...updates }
 }
 
+export function setEntryTags(id: number, tagIds: number[]): void {
+  const db = getDb()
+  // Delete existing tags
+  db.prepare('DELETE FROM entry_tags WHERE entry_id = ?').run(id)
+  // Insert new tags
+  if (tagIds.length > 0) {
+    const stmt = db.prepare('INSERT INTO entry_tags (entry_id, tag_id) VALUES (?, ?)')
+    for (const tagId of tagIds) {
+      stmt.run(id, tagId)
+    }
+  }
+}
+
 export function deleteEntry(id: number): { success: boolean } {
   const db = getDb()
   // Soft delete
   db.prepare('UPDATE entries SET is_deleted = 1 WHERE id = ?').run(id)
+  return { success: true }
+}
+
+export function restoreEntry(id: number): { success: boolean } {
+  const db = getDb()
+  db.prepare('UPDATE entries SET is_deleted = 0 WHERE id = ?').run(id)
   return { success: true }
 }
 
