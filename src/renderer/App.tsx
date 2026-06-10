@@ -103,7 +103,17 @@ function App(): React.ReactElement {
         : MOCK_ENTRIES.filter((entry) => !entry.is_deleted)
 
       if (activeFolder !== null) {
-        filteredEntries = filteredEntries.filter((entry) => entry.folder_id === activeFolder)
+        const getDescendantIds = (parentId: number): number[] => {
+          const ids: number[] = [parentId]
+          for (const f of folders) {
+            if (f.parent_id === parentId) {
+              ids.push(...getDescendantIds(f.id))
+            }
+          }
+          return ids
+        }
+        const folderIds = getDescendantIds(activeFolder)
+        filteredEntries = filteredEntries.filter((entry) => folderIds.includes(entry.folder_id))
       }
 
       if (activeTag !== null) {

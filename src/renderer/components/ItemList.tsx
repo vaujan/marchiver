@@ -292,37 +292,85 @@ const ItemList: React.FC<ItemListProps> = ({
 			: setInternalImageDialogOpen(open);
 	};
 
+	// Context-aware default folder
+	const defaultFolderId = activeFolder !== null ? String(activeFolder) : "1";
+
 	// Add URL form state
 	const [urlTitle, setUrlTitle] = useState("");
 	const [urlValue, setUrlValue] = useState("");
-	const [urlFolderId, setUrlFolderId] = useState<string>("1");
+	const [urlFolderId, setUrlFolderId] = useState<string>(defaultFolderId);
 	const [urlTagIds, setUrlTagIds] = useState<number[]>([]);
 	const [urlCaptureScreenshot, setUrlCaptureScreenshot] = useState(true);
 	const [urlSubmitting, setUrlSubmitting] = useState(false);
+	const [urlTitleFetching, setUrlTitleFetching] = useState(false);
 
 	// Add Image form state
 	const [imageTitle, setImageTitle] = useState("");
 	const [imagePath, setImagePath] = useState<string | null>(null);
-	const [imageFolderId, setImageFolderId] = useState<string>("1");
+	const [imageFolderId, setImageFolderId] = useState<string>(defaultFolderId);
 	const [imageTagIds, setImageTagIds] = useState<number[]>([]);
 	const [imageSubmitting, setImageSubmitting] = useState(false);
+
+	// Reset folder when activeFolder changes
+	useEffect(() => {
+		setUrlFolderId(defaultFolderId);
+		setImageFolderId(defaultFolderId);
+	}, [activeFolder]);
 
 	const resetUrlForm = () => {
 		setUrlTitle("");
 		setUrlValue("");
-		setUrlFolderId("1");
+		setUrlFolderId(defaultFolderId);
 		setUrlTagIds([]);
 		setUrlCaptureScreenshot(true);
 		setUrlSubmitting(false);
+		setUrlTitleFetching(false);
 	};
 
 	const resetImageForm = () => {
 		setImageTitle("");
 		setImagePath(null);
-		setImageFolderId("1");
+		setImageFolderId(defaultFolderId);
 		setImageTagIds([]);
 		setImageSubmitting(false);
 	};
+
+	// Auto-fetch title from URL
+	useEffect(() => {
+		if (!urlValue.trim() || urlTitle.trim()) return;
+		let cancelled = false;
+		const timer = setTimeout(async () => {
+			try {
+				setUrlTitleFetching(true);
+				const result = await window.electronAPI.fetchUrlMetadata(urlValue.trim());
+				if (!cancelled && result.success && result.title) {
+					setUrlTitle(result.title);
+				}
+			} catch {
+				// ignore
+			} finally {
+				if (!cancelled) setUrlTitleFetching(false);
+			}
+		}, 1000);
+		return () => {
+			cancelled = true;
+			clearTimeout(timer);
+		};
+	}, [urlValue, urlTitle]);
+
+	// Clipboard detection on dialog open
+	useEffect(() => {
+		if (urlDialogOpen && !urlValue) {
+			navigator.clipboard.readText().then((text) => {
+				const trimmed = text.trim();
+				if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+					setUrlValue(trimmed);
+				}
+			}).catch(() => {
+				// ignore permission errors
+			});
+		}
+	}, [urlDialogOpen]);
 
 	const handleAddUrl = async () => {
 		if (!urlTitle.trim() || !urlValue.trim()) return;
@@ -619,22 +667,35 @@ const ItemList: React.FC<ItemListProps> = ({
 						</DialogDescription>
 					</DialogHeader>
 					<FieldGroup>
-						<Field>
-							<FieldLabel>Title</FieldLabel>
-							<Input
-								value={urlTitle}
-								onChange={(e) => setUrlTitle(e.target.value)}
-								placeholder="e.g., How to Build a Second Brain"
-							/>
-						</Field>
-						<Field>
-							<FieldLabel>URL</FieldLabel>
-							<Input
-								value={urlValue}
-								onChange={(e) => setUrlValue(e.target.value)}
-								placeholder="https://..."
-							/>
-						</Field>
+					<Field>
+						<FieldLabel>
+							Title
+							{urlTitleFetching && (
+								<span className="ml-2 text-xs text-muted-foreground inline-flex items-center gap-1">
+														<Spinner className="size-3 animate-spin" />
+									Fetching title...
+								</span>
+							)}
+						</FieldLabel>
+						<Input
+							value={urlTitle}
+							onChange={(e) => setUrlTitle(e.target.value)}
+							placeholder="e.g., How to Build a Second Brain"
+						/>
+					</Field>
+					<Field>
+						<FieldLabel>URL</FieldLabel>
+						<Input
+							value={urlValue}
+							onChange={(e) => setUrlValue(e.target.value)}
+							placeholder="https://..."
+							onKeyDown={(e) => {
+								if (e.key === "Enter" && urlTitle.trim() && urlValue.trim()) {
+									handleAddUrl();
+								}
+							}}
+						/>
+					</Field>
 						<Field>
 							<FieldLabel>Folder</FieldLabel>
 							<Select
