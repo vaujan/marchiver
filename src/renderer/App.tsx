@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import Sidebar from './components/Sidebar'
 import ItemList from './components/ItemList'
 import DetailPane from './components/DetailPane'
 import TitleBar from './components/TitleBar'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
+import { Toaster } from '@/components/ui/sonner'
 import { MOCK_FOLDERS, MOCK_TAGS, MOCK_ENTRIES, MOCK_TRASHED_ENTRIES } from './lib/mock-data'
 
 
@@ -192,9 +194,22 @@ function App(): React.ReactElement {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  const lastDeletedEntry = useRef<Entry | null>(null)
+
   const handleAddEntry = async (payload: AddEntryPayload): Promise<void> => {
     const result = await window.electronAPI.addEntry(payload)
     setEntries((prev) => [result as Entry, ...prev])
+    toast.success(`Saved "${result.title}"`, {
+      action: {
+        label: 'Undo',
+        onClick: () => {
+          window.electronAPI.deleteEntry(result.id).then(() => {
+            setEntries((prev) => prev.filter((e) => e.id !== result.id))
+            if (selectedEntry?.id === result.id) setSelectedEntry(null)
+          })
+        },
+      },
+    })
   }
 
   const handleUpdateEntry = async (id: number, updates: Partial<Entry>): Promise<void> => {
@@ -206,9 +221,22 @@ function App(): React.ReactElement {
   }
 
   const handleDeleteEntry = async (id: number): Promise<void> => {
+    const entry = entries.find((e) => e.id === id) ?? null
+    lastDeletedEntry.current = entry
     await window.electronAPI.deleteEntry(id)
     setEntries((prev) => prev.filter((e) => e.id !== id))
     if (selectedEntry?.id === id) setSelectedEntry(null)
+    toast.success(entry ? `Moved "${entry.title}" to trash` : 'Moved to trash', {
+      action: {
+        label: 'Undo',
+        onClick: () => {
+          window.electronAPI.restoreEntry(id).then(() => {
+            loadData()
+            if (entry) setSelectedEntry(entry)
+          })
+        },
+      },
+    })
   }
 
 	const handleAddFolder = async (payload: { name: string; parent_id?: number; icon?: string }): Promise<void> => {
@@ -231,6 +259,7 @@ function App(): React.ReactElement {
 
   return (
     <div className={cn("h-screen w-screen flex flex-col overflow-hidden bg-background", isDark && "dark")}>
+      <Toaster position="bottom-right" />
       <SidebarProvider className="flex-1 w-full min-h-0">
         <Sidebar
           folders={folders}
