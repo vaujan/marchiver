@@ -469,12 +469,12 @@ const ItemList: React.FC<ItemListProps> = ({
 		<div className="w-[380px] min-w-[380px] flex flex-col h-full">
 			{/* Toolbar */}
 			<div
-				className="h-10 px-3 flex items-center gap-2 border-b border-border/50"
+				className="h-10 px-3 flex items-center gap-2 border-b border-border"
 				style={dragStyle}
 			>
 				{/* Search */}
 				<div className="flex-1 min-w-0" style={noDragStyle}>
-					<InputGroup className="h-6 rounded-md">
+					<InputGroup className="h-6 bg-accent border border-border rounded-md">
 						<InputGroupAddon align="inline-start">
 							<MagnifyingGlass className="size-3.5 opacity-50" />
 						</InputGroupAddon>
@@ -605,12 +605,12 @@ const ItemList: React.FC<ItemListProps> = ({
 									variant="ghost"
 									size="icon-sm"
 									onClick={() =>
-									onViewModeChange(
-										viewMode === 'expanded' ? 'compact' : 'expanded',
-									)
-								}
+										onViewModeChange(
+											viewMode === "expanded" ? "compact" : "expanded",
+										)
+									}
 								>
-									{viewMode === 'expanded' ? (
+									{viewMode === "expanded" ? (
 										<Rows className="size-4" />
 									) : (
 										<SquaresFour className="size-4" />
@@ -618,7 +618,7 @@ const ItemList: React.FC<ItemListProps> = ({
 								</Button>
 							</TooltipTrigger>
 							<TooltipContent>
-								{viewMode === 'expanded' ? 'Compact view' : 'Expanded view'}
+								{viewMode === "expanded" ? "Compact view" : "Expanded view"}
 							</TooltipContent>
 						</Tooltip>
 

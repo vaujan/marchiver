@@ -4,12 +4,12 @@ import { cn } from "@/lib/utils";
 import { Minus, Square, X, Sun, Moon } from "@phosphor-icons/react";
 import type { Entry, Folder, Tag } from "../App";
 import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
+	Breadcrumb,
+	BreadcrumbList,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbPage,
+	BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
 const platform = window.electronAPI.platform;
@@ -65,7 +65,10 @@ const WindowControls: React.FC = () => (
 	</div>
 );
 
-function getFolderPathSegments(folderId: number | null, folders: Folder[]): Folder[] {
+function getFolderPathSegments(
+	folderId: number | null,
+	folders: Folder[],
+): Folder[] {
 	if (folderId === null) return [];
 	const folder = folders.find((f) => f.id === folderId);
 	if (!folder) return [];
@@ -117,7 +120,7 @@ const TitleBar: React.FC<TitleBarProps> = ({
 							/>
 						) : (
 							<span className="text-sidebar-foreground/60">All Items</span>
-							)}
+						)}
 					</BreadcrumbItem>,
 				);
 				items.push(<BreadcrumbSeparator key="sep-all" />);
@@ -137,9 +140,9 @@ const TitleBar: React.FC<TitleBarProps> = ({
 										</span>
 									}
 								/>
-								) : (
-									<span className="text-sidebar-foreground/60">{folder.name}</span>
-								)}
+							) : (
+								<span className="text-sidebar-foreground/60">{folder.name}</span>
+							)}
 						</BreadcrumbItem>,
 					);
 					if (!isLast) {
@@ -158,7 +161,9 @@ const TitleBar: React.FC<TitleBarProps> = ({
 		} else if (trashView) {
 			items.push(
 				<BreadcrumbItem key="trash">
-					<BreadcrumbPage className="text-sidebar-foreground/60">Trash</BreadcrumbPage>
+					<BreadcrumbPage className="text-sidebar-foreground/60">
+						Trash
+					</BreadcrumbPage>
 				</BreadcrumbItem>,
 			);
 		} else if (activeFolder !== null) {
@@ -180,7 +185,7 @@ const TitleBar: React.FC<TitleBarProps> = ({
 							/>
 						) : (
 							<span className="text-sidebar-foreground/60">All Items</span>
-							)}
+						)}
 					</BreadcrumbItem>,
 				);
 				items.push(<BreadcrumbSeparator key="sep-all" />);
@@ -200,13 +205,15 @@ const TitleBar: React.FC<TitleBarProps> = ({
 										</span>
 									}
 								/>
-								) : isLast ? (
-									<BreadcrumbPage className="text-sidebar-foreground/60">
-										{folder.name}
-									</BreadcrumbPage>
-								) : (
-									<span className="text-sidebar-foreground/60">{folder.name}</span>
-								)}
+							) : isLast ? (
+								<BreadcrumbPage className="text-sidebar-foreground/60">
+									{folder.name}
+								</BreadcrumbPage>
+							) : (
+								<span className="text-sidebar-foreground/60">
+									{folder.name}
+								</span>
+							)}
 						</BreadcrumbItem>,
 					);
 					if (!isLast) {
@@ -228,13 +235,22 @@ const TitleBar: React.FC<TitleBarProps> = ({
 		}
 
 		return items;
-	}, [trashView, activeFolder, activeTag, folders, tags, selectedEntry, onNavigateToAll, onNavigateToFolder]);
+	}, [
+		trashView,
+		activeFolder,
+		activeTag,
+		folders,
+		tags,
+		selectedEntry,
+		onNavigateToAll,
+		onNavigateToFolder,
+	]);
 
 	return (
 		<div
 			data-slot="titlebar"
 			className={cn(
-				"h-10 flex items-center border-b bg-card border-border/50 text-sidebar-foreground select-none",
+				"h-10 flex items-center bg-card border-border/50 text-sidebar-foreground select-none",
 				className,
 			)}
 			style={dragStyle}
@@ -257,14 +273,14 @@ const TitleBar: React.FC<TitleBarProps> = ({
 
 			{/* Right: theme toggle + window controls */}
 			<div className="flex items-center h-full pr-0">
-			<Button
-				variant="ghost"
-				size="icon-sm"
-				className="h-10 w-10 rounded-none text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-				onClick={onToggleTheme}
-				title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-				style={noDragStyle}
-			>
+				<Button
+					variant="ghost"
+					size="icon-sm"
+					className="h-10 w-10 rounded-none text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+					onClick={onToggleTheme}
+					title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+					style={noDragStyle}
+				>
 					{isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
 				</Button>
 
