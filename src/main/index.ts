@@ -9,9 +9,11 @@ import {
   addEntry,
   updateEntry,
   deleteEntry,
+  restoreEntry,
   addFolder,
   addTag,
   getEntryById,
+  setEntryTags,
 } from './db'
 
 let mainWindow: BrowserWindow | null
@@ -168,12 +170,45 @@ ipcMain.handle('add-entry', async (_event, entry: { title: string; type: 'url' |
   return addEntry(entry)
 })
 
-ipcMain.handle('update-entry', async (_event, { id, updates }: { id: number; updates: { title?: string; source_url?: string | null; screenshot_path?: string | null; folder_id?: number; is_deleted?: boolean } }) => {
-  return updateEntry(id, updates)
+ipcMain.handle('update-entry', async (_event, { id, updates, tagIds }: { id: number; updates: { title?: string; source_url?: string | null; screenshot_path?: string | null; folder_id?: number; is_deleted?: boolean }; tagIds?: number[] }) => {
+  const result = updateEntry(id, updates)
+  if (tagIds !== undefined) {
+    setEntryTags(id, tagIds)
+  }
+  return result
 })
 
 ipcMain.handle('delete-entry', async (_event, id: number) => {
   return deleteEntry(id)
+})
+
+ipcMain.handle('restore-entry', async (_event, id: number) => {
+  return restoreEntry(id)
+})
+
+ipcMain.handle('fetch-url-metadata', async (_event, url: string) => {
+  const win = new BrowserWindow({
+    show: false,
+    width: 1280,
+    height: 720,
+    webPreferences: {
+      offscreen: true,
+    },
+  })
+
+  try {
+    await win.loadURL(url)
+    // Wait for page to settle
+    await new Promise((resolve) => setTimeout(resolve, 2500))
+
+    const title = await win.webContents.executeJavaScript('document.title')
+    return { success: true, title: title || null }
+  } catch (error) {
+    console.error('Fetch URL metadata failed:', error)
+    return { success: false, title: null, error: String(error) }
+  } finally {
+    win.close()
+  }
 })
 
 ipcMain.handle('add-folder', async (_event, { name, parent_id, icon }: { name: string; parent_id?: number; icon?: string }) => {

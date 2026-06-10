@@ -51,11 +51,13 @@ interface Window {
       screenshot_path?: string | null
       folder_id?: number
       is_deleted?: boolean
-    }) => Promise<{ id: number } & typeof updates>
+    }, tagIds?: number[]) => Promise<{ id: number } & typeof updates>
     deleteEntry: (id: number) => Promise<{ success: boolean }>
+    restoreEntry: (id: number) => Promise<{ success: boolean }>
     addFolder: (payload: { name: string; parent_id?: number; icon?: string }) => Promise<{ id: number; name: string; parent_id: number | null; icon: string }>
     addTag: (payload: { name: string; color?: string; icon?: string }) => Promise<{ id: number; name: string; color: string; icon: string }>
     captureScreenshot: (url: string) => Promise<{ success: boolean; path: string | null; error?: string }>
+    fetchUrlMetadata: (url: string) => Promise<{ success: boolean; title: string | null; error?: string }>
     pickImage: () => Promise<string | null>
     openExternal: (url: string) => Promise<void>
     minimizeWindow: () => Promise<void>
