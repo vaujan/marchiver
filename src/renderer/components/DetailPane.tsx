@@ -21,12 +21,14 @@ interface DetailPaneProps {
 	folders: Folder[];
 	onUpdateEntry: (id: number, updates: Partial<Entry>) => void;
 	onDeleteEntry: (id: number) => void;
+	onEditEntry: (entry: Entry) => void;
 }
 
 const DetailPane: React.FC<DetailPaneProps> = ({
 	entry,
 	folders,
 	onDeleteEntry,
+	onEditEntry,
 }) => {
 	const platform = window.electronAPI.platform;
 	const isMac = platform === 'darwin';
@@ -151,7 +153,7 @@ const DetailPane: React.FC<DetailPaneProps> = ({
 								Open
 							</Button>
 						)}
-						<Button size="sm" variant="outline">
+						<Button size="sm" variant="outline" onClick={() => entry && onEditEntry(entry)}>
 							<PencilSimple data-icon="inline-start" />
 							Edit
 						</Button>

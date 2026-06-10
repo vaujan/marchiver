@@ -195,6 +195,7 @@ function App(): React.ReactElement {
   }, [])
 
   const lastDeletedEntry = useRef<Entry | null>(null)
+  const [editingEntry, setEditingEntry] = useState<Entry | null>(null)
 
   const handleAddEntry = async (payload: AddEntryPayload): Promise<void> => {
     const result = await window.electronAPI.addEntry(payload)
@@ -218,6 +219,14 @@ function App(): React.ReactElement {
     if (selectedEntry?.id === id) {
       setSelectedEntry((prev) => (prev ? { ...prev, ...updates } : null))
     }
+  }
+
+  const handleEditEntry = (entry: Entry): void => {
+    setEditingEntry(entry)
+  }
+
+  const handleEditEntryClose = (): void => {
+    setEditingEntry(null)
   }
 
   const handleDeleteEntry = async (id: number): Promise<void> => {
@@ -292,6 +301,8 @@ function App(): React.ReactElement {
             onSearchChange={setSearchQuery}
             onSelectEntry={setSelectedEntry}
             onAddEntry={handleAddEntry}
+            onUpdateEntry={handleUpdateEntry}
+            onAddTag={handleAddTag}
             folders={folders}
             tags={tags}
             activeFolder={activeFolder}
@@ -301,6 +312,8 @@ function App(): React.ReactElement {
             onUrlDialogOpenChange={setUrlDialogOpen}
             imageDialogOpen={imageDialogOpen}
             onImageDialogOpenChange={setImageDialogOpen}
+            editEntry={editingEntry}
+            onEditEntryClose={handleEditEntryClose}
             sortOrder={sortOrder}
             onSortOrderChange={setSortOrder}
             viewMode={viewMode}
@@ -336,6 +349,7 @@ function App(): React.ReactElement {
               folders={folders}
               onUpdateEntry={handleUpdateEntry}
               onDeleteEntry={handleDeleteEntry}
+              onEditEntry={handleEditEntry}
             />
           </div>
         </SidebarInset>

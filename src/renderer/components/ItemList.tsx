@@ -38,6 +38,8 @@ import {
 	SquaresFour,
 	Plus,
 	X,
+	Check,
+	Spinner,
 } from "@phosphor-icons/react";
 import {
 	DropdownMenu,
@@ -64,6 +66,8 @@ interface ItemListProps {
 	onSearchChange: (q: string) => void;
 	onSelectEntry: (entry: Entry) => void;
 	onAddEntry: (payload: AddEntryPayload) => void;
+	onUpdateEntry: (id: number, updates: Partial<Entry>, tagIds?: number[]) => Promise<void>;
+	onAddTag?: (payload: { name: string; color?: string; icon?: string }) => Promise<void>;
 	folders: Folder[];
 	tags: Tag[];
 	activeFolder: number | null;
@@ -73,12 +77,14 @@ interface ItemListProps {
 	onUrlDialogOpenChange?: (open: boolean) => void;
 	imageDialogOpen?: boolean;
 	onImageDialogOpenChange?: (open: boolean) => void;
-	sortOrder: 'newest' | 'oldest' | 'alphabetical' | 'type';
+	editEntry?: Entry | null;
+	onEditEntryClose?: () => void;
+	sortOrder: "newest" | "oldest" | "alphabetical" | "type";
 	onSortOrderChange: (
-		order: 'newest' | 'oldest' | 'alphabetical' | 'type',
+		order: "newest" | "oldest" | "alphabetical" | "type",
 	) => void;
-	viewMode: 'expanded' | 'compact';
-	onViewModeChange: (mode: 'expanded' | 'compact') => void;
+	viewMode: "expanded" | "compact";
+	onViewModeChange: (mode: "expanded" | "compact") => void;
 	activeTagFilters: number[];
 	onActiveTagFiltersChange: (ids: number[]) => void;
 }
@@ -116,29 +122,115 @@ const TagSelector: React.FC<{
 	tags: Tag[];
 	selectedIds: number[];
 	onChange: (ids: number[]) => void;
-}> = ({ tags, selectedIds, onChange }) => (
-	<div className="flex flex-wrap gap-1.5">
-		{tags.map((tag) => {
-			const isSelected = selectedIds.includes(tag.id);
-			return (
-				<Badge
-					key={tag.id}
-					variant={isSelected ? "default" : "outline"}
-					className="cursor-pointer"
-					onClick={() => {
-						if (selectedIds.includes(tag.id)) {
-							onChange(selectedIds.filter((id) => id !== tag.id));
-						} else {
-							onChange([...selectedIds, tag.id]);
-						}
-					}}
-				>
-					# {tag.name}
-				</Badge>
-			);
-		})}
-	</div>
-);
+	onCreateTag?: (payload: { name: string; color?: string; icon?: string }) => Promise<void>;
+}> = ({ tags, selectedIds, onChange, onCreateTag }) => {
+	const [isCreating, setIsCreating] = useState(false);
+	const [newTagName, setNewTagName] = useState("");
+	const [newTagColor, setNewTagColor] = useState("#e54d42");
+	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const handleCreate = async () => {
+		const name = newTagName.trim();
+		if (!name || !onCreateTag) return;
+		setIsSubmitting(true);
+		try {
+			await onCreateTag({ name, color: newTagColor, icon: "Hash" });
+			setIsCreating(false);
+			setNewTagName("");
+			setNewTagColor("#e54d42");
+		} catch {
+			// error handled by caller
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
+
+	return (
+		<div className="flex flex-wrap gap-1.5">
+			{tags.map((tag) => {
+				const isSelected = selectedIds.includes(tag.id);
+				return (
+					<Badge
+						key={tag.id}
+						variant={isSelected ? "default" : "outline"}
+						className="cursor-pointer"
+						onClick={() => {
+							if (selectedIds.includes(tag.id)) {
+								onChange(selectedIds.filter((id) => id !== tag.id));
+							} else {
+								onChange([...selectedIds, tag.id]);
+							}
+						}}
+					>
+						# {tag.name}
+					</Badge>
+				);
+			})}
+			{onCreateTag && (
+				<>
+					{isCreating ? (
+						<div className="flex items-center gap-1.5">
+							<Input
+								value={newTagName}
+								onChange={(e) => setNewTagName(e.target.value)}
+								placeholder="Tag name"
+								className="h-6 w-28 text-xs"
+								onKeyDown={(e) => {
+									if (e.key === "Enter") handleCreate();
+									if (e.key === "Escape") {
+										setIsCreating(false);
+										setNewTagName("");
+									}
+								}}
+								autoFocus
+							/>
+								<input
+									type="color"
+									value={newTagColor}
+									onChange={(e) => setNewTagColor(e.target.value)}
+									className="h-6 w-6 rounded cursor-pointer border-0 p-0"
+									title="Tag color"
+								/>
+								<Button
+									variant="ghost"
+									size="icon-sm"
+									className="h-6 w-6"
+									onClick={handleCreate}
+									disabled={isSubmitting || !newTagName.trim()}
+								>
+									{isSubmitting ? (
+														<Spinner className="size-3 animate-spin" />
+									) : (
+										<Check className="size-3" />
+									)}
+								</Button>
+								<Button
+									variant="ghost"
+									size="icon-sm"
+									className="h-6 w-6"
+									onClick={() => {
+										setIsCreating(false);
+										setNewTagName("");
+									}}
+								>
+									<X className="size-3" />
+								</Button>
+							</div>
+						) : (
+							<Badge
+								variant="outline"
+								className="cursor-pointer hover:bg-muted"
+								onClick={() => setIsCreating(true)}
+							>
+								<Plus className="size-3 mr-0.5" />
+								New tag
+							</Badge>
+						)}
+					</>
+				)}
+		</div>
+	);
+};
 
 const ItemList: React.FC<ItemListProps> = ({
 	entries,
@@ -147,6 +239,8 @@ const ItemList: React.FC<ItemListProps> = ({
 	onSearchChange,
 	onSelectEntry,
 	onAddEntry,
+	onUpdateEntry,
+	onAddTag,
 	folders,
 	tags,
 	activeFolder,
@@ -156,6 +250,8 @@ const ItemList: React.FC<ItemListProps> = ({
 	onUrlDialogOpenChange,
 	imageDialogOpen: imageDialogOpenProp,
 	onImageDialogOpenChange,
+	editEntry,
+	onEditEntryClose,
 	sortOrder,
 	onSortOrderChange,
 	viewMode,
@@ -284,6 +380,41 @@ const ItemList: React.FC<ItemListProps> = ({
 		setImageSubmitting(false);
 		setImageDialogOpen(false);
 		resetImageForm();
+	};
+
+	// Edit dialog state
+	const [editTitle, setEditTitle] = useState("");
+	const [editFolderId, setEditFolderId] = useState<string>("1");
+	const [editTagIds, setEditTagIds] = useState<number[]>([]);
+	const [editSubmitting, setEditSubmitting] = useState(false);
+
+	// Sync edit dialog when editEntry changes
+	useEffect(() => {
+		if (editEntry) {
+			setEditTitle(editEntry.title);
+			setEditFolderId(String(editEntry.folder_id));
+			const tagIds = editEntry.tags
+				.map((name) => tags.find((t) => t.name === name)?.id)
+				.filter((id): id is number => id !== undefined);
+			setEditTagIds(tagIds);
+		} else {
+			setEditTitle("");
+			setEditFolderId("1");
+			setEditTagIds([]);
+		}
+	}, [editEntry, tags]);
+
+	const handleEditSave = async () => {
+		if (!editEntry || !editTitle.trim()) return;
+		setEditSubmitting(true);
+
+		await onUpdateEntry(editEntry.id, {
+			title: editTitle.trim(),
+			folder_id: Number(editFolderId),
+		}, editTagIds);
+
+		setEditSubmitting(false);
+		onEditEntryClose?.();
 	};
 
 	return (
@@ -532,6 +663,7 @@ const ItemList: React.FC<ItemListProps> = ({
 								tags={tags}
 								selectedIds={urlTagIds}
 								onChange={setUrlTagIds}
+								onCreateTag={onAddTag}
 							/>
 						</Field>
 						<Field orientation="horizontal">
@@ -640,6 +772,7 @@ const ItemList: React.FC<ItemListProps> = ({
 								tags={tags}
 								selectedIds={imageTagIds}
 								onChange={setImageTagIds}
+								onCreateTag={onAddTag}
 							/>
 						</Field>
 					</FieldGroup>
@@ -658,6 +791,78 @@ const ItemList: React.FC<ItemListProps> = ({
 							onClick={handleAddImage}
 						>
 							{imageSubmitting ? "Saving..." : "Save"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* Edit Entry Dialog */}
+			<Dialog open={!!editEntry} onOpenChange={(open) => { if (!open) onEditEntryClose?.(); }}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle>Edit Entry</DialogTitle>
+						<DialogDescription>
+							Update the title, folder, and tags.
+						</DialogDescription>
+					</DialogHeader>
+					<FieldGroup>
+						<Field>
+							<FieldLabel>Title</FieldLabel>
+							<Input
+								value={editTitle}
+								onChange={(e) => setEditTitle(e.target.value)}
+								placeholder="Entry title"
+								onKeyDown={(e) => {
+									if (e.key === "Enter" && editTitle.trim()) {
+										handleEditSave();
+									}
+								}}
+							/>
+						</Field>
+						<Field>
+							<FieldLabel>Folder</FieldLabel>
+							<Select
+								value={editFolderId}
+								onValueChange={(val) => {
+									if (val) setEditFolderId(val);
+								}}
+							>
+								<SelectTrigger>
+									<SelectValue placeholder="Select folder" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										{folders.map((folder) => (
+											<SelectItem key={folder.id} value={String(folder.id)}>
+												{folder.name}
+											</SelectItem>
+										))}
+									</SelectGroup>
+								</SelectContent>
+							</Select>
+						</Field>
+						<Field>
+							<FieldLabel>Tags</FieldLabel>
+							<TagSelector
+								tags={tags}
+								selectedIds={editTagIds}
+								onChange={setEditTagIds}
+								onCreateTag={onAddTag}
+							/>
+						</Field>
+					</FieldGroup>
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => onEditEntryClose?.()}
+						>
+							Cancel
+						</Button>
+						<Button
+							disabled={!editTitle.trim() || editSubmitting}
+							onClick={handleEditSave}
+						>
+							{editSubmitting ? "Saving..." : "Save"}
 						</Button>
 					</DialogFooter>
 				</DialogContent>
