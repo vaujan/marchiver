@@ -222,7 +222,7 @@ function App(): React.ReactElement {
     })
   }, [])
 
-  // Dialog state (lifted from ItemList for menu bar access)
+  // Dialog state
   const [urlDialogOpen, setUrlDialogOpen] = useState(false)
   const [imageDialogOpen, setImageDialogOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)

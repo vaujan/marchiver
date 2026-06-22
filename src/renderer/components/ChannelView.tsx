@@ -21,7 +21,6 @@ import {
 	DropdownMenuTrigger,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuItemIndicator,
 	DropdownMenuSeparator,
 	DropdownMenuRadioGroup,
 	DropdownMenuRadioItem,
