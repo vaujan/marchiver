@@ -88,6 +88,10 @@ interface ChannelViewProps {
 	onEditEntry: (entry: Entry) => void;
 	onNavigateToAll: () => void;
 	onNavigateToFolder: (folderId: number) => void;
+	urlDialogOpen?: boolean;
+	onUrlDialogOpenChange?: (open: boolean) => void;
+	imageDialogOpen?: boolean;
+	onImageDialogOpenChange?: (open: boolean) => void;
 }
 
 function getFolderPathSegments(
@@ -136,6 +140,10 @@ const ChannelView: React.FC<ChannelViewProps> = ({
 	onEditEntry,
 	onNavigateToAll,
 	onNavigateToFolder,
+	urlDialogOpen: urlDialogOpenProp,
+	onUrlDialogOpenChange,
+	imageDialogOpen: imageDialogOpenProp,
+	onImageDialogOpenChange,
 }) => {
 	// Search input with debounce
 	const [searchInput, setSearchInput] = useState(searchQuery);
@@ -153,9 +161,21 @@ const ChannelView: React.FC<ChannelViewProps> = ({
 		return () => clearTimeout(timer);
 	}, [searchInput, searchQuery, onSearchChange]);
 
-	// Dialog state
-	const [urlDialogOpen, setUrlDialogOpen] = useState(false);
-	const [imageDialogOpen, setImageDialogOpen] = useState(false);
+	// Dialog state (with prop-overridable internal fallback)
+	const [internalUrlOpen, setInternalUrlOpen] = useState(false);
+	const [internalImageOpen, setInternalImageOpen] = useState(false);
+	const urlDialogOpen = urlDialogOpenProp ?? internalUrlOpen;
+	const setUrlDialogOpen = (open: boolean) => {
+		onUrlDialogOpenChange
+			? onUrlDialogOpenChange(open)
+			: setInternalUrlOpen(open);
+	};
+	const imageDialogOpen = imageDialogOpenProp ?? internalImageOpen;
+	const setImageDialogOpen = (open: boolean) => {
+		onImageDialogOpenChange
+			? onImageDialogOpenChange(open)
+			: setInternalImageOpen(open);
+	};
 
 	// Context-aware default folder
 	const defaultFolderId = activeFolder !== null ? String(activeFolder) : "1";

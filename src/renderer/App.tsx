@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import Sidebar from './components/Sidebar'
-import ItemList from './components/ItemList'
-import DetailPane from './components/DetailPane'
+import ChannelView from './components/ChannelView'
 import TitleBar from './components/TitleBar'
 import SettingsDialog from './components/SettingsDialog'
 import { cn } from '@/lib/utils'
@@ -59,7 +58,7 @@ function App(): React.ReactElement {
 
   // Toolbar states
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest' | 'alphabetical' | 'type'>('newest')
-  const [viewMode, setViewMode] = useState<'expanded' | 'compact'>('expanded')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [activeTagFilters, setActiveTagFilters] = useState<number[]>([])
 
   // Theme state
@@ -443,66 +442,53 @@ function App(): React.ReactElement {
           onAddFolder={handleAddFolder}
           onAddTag={handleAddTag}
         />
-        <SidebarInset className="flex flex-row h-full w-full overflow-hidden">
-          <ItemList
+        <SidebarInset className="flex flex-col h-full w-full overflow-hidden">
+          <TitleBar
+            isDark={isDark}
+            onToggleTheme={toggleTheme}
+            onSettingsOpen={() => setSettingsOpen(true)}
+          />
+          <ChannelView
             entries={entries}
             selectedEntry={selectedEntry}
+            folders={folders}
+            tags={tags}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onSelectEntry={setSelectedEntry}
             onAddEntry={handleAddEntry}
             onUpdateEntry={handleUpdateEntry}
+            onDeleteEntry={handleDeleteEntry}
             onAddTag={handleAddTag}
-            folders={folders}
-            tags={tags}
             activeFolder={activeFolder}
             activeTag={activeTag}
             trashView={trashView}
-            urlDialogOpen={urlDialogOpen}
-            onUrlDialogOpenChange={setUrlDialogOpen}
-            imageDialogOpen={imageDialogOpen}
-            onImageDialogOpenChange={setImageDialogOpen}
-            editEntry={editingEntry}
-            onEditEntryClose={handleEditEntryClose}
             sortOrder={sortOrder}
             onSortOrderChange={setSortOrder}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
             activeTagFilters={activeTagFilters}
             onActiveTagFiltersChange={setActiveTagFilters}
+            editingEntry={editingEntry}
+            onEditEntryClose={handleEditEntryClose}
+            onEditEntry={handleEditEntry}
+            urlDialogOpen={urlDialogOpen}
+            onUrlDialogOpenChange={setUrlDialogOpen}
+            imageDialogOpen={imageDialogOpen}
+            onImageDialogOpenChange={setImageDialogOpen}
+            onNavigateToAll={() => {
+              setTrashView(false)
+              setActiveFolder(null)
+              setActiveTag(null)
+              setSelectedEntry(null)
+            }}
+            onNavigateToFolder={(folderId) => {
+              setTrashView(false)
+              setActiveFolder(folderId)
+              setActiveTag(null)
+              setSelectedEntry(null)
+            }}
           />
-          <div className="flex-1 flex flex-col min-h-0">
-            <TitleBar
-              isDark={isDark}
-              onToggleTheme={toggleTheme}
-              onSettingsOpen={() => setSettingsOpen(true)}
-              trashView={trashView}
-              activeFolder={activeFolder}
-              activeTag={activeTag}
-              selectedEntry={selectedEntry}
-              folders={folders}
-              tags={tags}
-              onNavigateToAll={() => {
-                setTrashView(false)
-                setActiveFolder(null)
-                setActiveTag(null)
-                setSelectedEntry(null)
-              }}
-              onNavigateToFolder={(folderId) => {
-                setTrashView(false)
-                setActiveFolder(folderId)
-                setActiveTag(null)
-                setSelectedEntry(null)
-              }}
-            />
-            <DetailPane
-              entry={selectedEntry}
-              folders={folders}
-              onUpdateEntry={handleUpdateEntry}
-              onDeleteEntry={handleDeleteEntry}
-              onEditEntry={handleEditEntry}
-            />
-          </div>
         </SidebarInset>
       </SidebarProvider>
     </div>
