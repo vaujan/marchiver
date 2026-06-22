@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Minus, Square, X, Sun, Moon } from "@phosphor-icons/react";
+import { Minus, Square, X, Sun, Moon, GearSix } from "@phosphor-icons/react";
 import type { Entry, Folder, Tag } from "../App";
 import {
 	Breadcrumb,
@@ -18,6 +18,7 @@ const isMac = platform === "darwin";
 interface TitleBarProps {
 	isDark?: boolean;
 	onToggleTheme?: () => void;
+	onSettingsOpen?: () => void;
 	className?: string;
 	trashView?: boolean;
 	activeFolder?: number | null;
@@ -88,6 +89,7 @@ function getFolderPathSegments(
 const TitleBar: React.FC<TitleBarProps> = ({
 	isDark,
 	onToggleTheme,
+	onSettingsOpen,
 	className,
 	trashView = false,
 	activeFolder = null,
@@ -271,7 +273,7 @@ const TitleBar: React.FC<TitleBarProps> = ({
 				)}
 			</div>
 
-			{/* Right: theme toggle + window controls */}
+			{/* Right: theme toggle + settings + window controls */}
 			<div className="flex items-center h-full pr-0">
 				<Button
 					variant="ghost"
@@ -282,6 +284,16 @@ const TitleBar: React.FC<TitleBarProps> = ({
 					style={noDragStyle}
 				>
 					{isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+				</Button>
+				<Button
+					variant="ghost"
+					size="icon-sm"
+					className="h-10 w-10 rounded-none text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+					onClick={onSettingsOpen}
+					title="Settings"
+					style={noDragStyle}
+				>
+					<GearSix className="size-4" />
 				</Button>
 
 				{!isMac && (

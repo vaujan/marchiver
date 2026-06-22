@@ -66,8 +66,16 @@ interface ItemListProps {
 	onSearchChange: (q: string) => void;
 	onSelectEntry: (entry: Entry) => void;
 	onAddEntry: (payload: AddEntryPayload) => void;
-	onUpdateEntry: (id: number, updates: Partial<Entry>, tagIds?: number[]) => Promise<void>;
-	onAddTag?: (payload: { name: string; color?: string; icon?: string }) => Promise<void>;
+	onUpdateEntry: (
+		id: number,
+		updates: Partial<Entry>,
+		tagIds?: number[],
+	) => Promise<void>;
+	onAddTag?: (payload: {
+		name: string;
+		color?: string;
+		icon?: string;
+	}) => Promise<void>;
 	folders: Folder[];
 	tags: Tag[];
 	activeFolder: number | null;
@@ -122,7 +130,11 @@ const TagSelector: React.FC<{
 	tags: Tag[];
 	selectedIds: number[];
 	onChange: (ids: number[]) => void;
-	onCreateTag?: (payload: { name: string; color?: string; icon?: string }) => Promise<void>;
+	onCreateTag?: (payload: {
+		name: string;
+		color?: string;
+		icon?: string;
+	}) => Promise<void>;
 }> = ({ tags, selectedIds, onChange, onCreateTag }) => {
 	const [isCreating, setIsCreating] = useState(false);
 	const [newTagName, setNewTagName] = useState("");
@@ -184,50 +196,50 @@ const TagSelector: React.FC<{
 								}}
 								autoFocus
 							/>
-								<input
-									type="color"
-									value={newTagColor}
-									onChange={(e) => setNewTagColor(e.target.value)}
-									className="h-6 w-6 rounded cursor-pointer border-0 p-0"
-									title="Tag color"
-								/>
-								<Button
-									variant="ghost"
-									size="icon-sm"
-									className="h-6 w-6"
-									onClick={handleCreate}
-									disabled={isSubmitting || !newTagName.trim()}
-								>
-									{isSubmitting ? (
-														<Spinner className="size-3 animate-spin" />
-									) : (
-										<Check className="size-3" />
-									)}
-								</Button>
-								<Button
-									variant="ghost"
-									size="icon-sm"
-									className="h-6 w-6"
-									onClick={() => {
-										setIsCreating(false);
-										setNewTagName("");
-									}}
-								>
-									<X className="size-3" />
-								</Button>
-							</div>
-						) : (
-							<Badge
-								variant="outline"
-								className="cursor-pointer hover:bg-muted"
-								onClick={() => setIsCreating(true)}
+							<input
+								type="color"
+								value={newTagColor}
+								onChange={(e) => setNewTagColor(e.target.value)}
+								className="h-6 w-6 rounded cursor-pointer border-0 p-0"
+								title="Tag color"
+							/>
+							<Button
+								variant="ghost"
+								size="icon-sm"
+								className="h-6 w-6"
+								onClick={handleCreate}
+								disabled={isSubmitting || !newTagName.trim()}
 							>
-								<Plus className="size-3 mr-0.5" />
-								New tag
-							</Badge>
-						)}
-					</>
-				)}
+								{isSubmitting ? (
+									<Spinner className="size-3 animate-spin" />
+								) : (
+									<Check className="size-3" />
+								)}
+							</Button>
+							<Button
+								variant="ghost"
+								size="icon-sm"
+								className="h-6 w-6"
+								onClick={() => {
+									setIsCreating(false);
+									setNewTagName("");
+								}}
+							>
+								<X className="size-3" />
+							</Button>
+						</div>
+					) : (
+						<Badge
+							variant="outline"
+							className="cursor-pointer hover:bg-muted"
+							onClick={() => setIsCreating(true)}
+						>
+							<Plus className="size-3 mr-0.5" />
+							New tag
+						</Badge>
+					)}
+				</>
+			)}
 		</div>
 	);
 };
@@ -342,7 +354,9 @@ const ItemList: React.FC<ItemListProps> = ({
 		const timer = setTimeout(async () => {
 			try {
 				setUrlTitleFetching(true);
-				const result = await window.electronAPI.fetchUrlMetadata(urlValue.trim());
+				const result = await window.electronAPI.fetchUrlMetadata(
+					urlValue.trim(),
+				);
 				if (!cancelled && result.success && result.title) {
 					setUrlTitle(result.title);
 				}
@@ -361,14 +375,17 @@ const ItemList: React.FC<ItemListProps> = ({
 	// Clipboard detection on dialog open
 	useEffect(() => {
 		if (urlDialogOpen && !urlValue) {
-			navigator.clipboard.readText().then((text) => {
-				const trimmed = text.trim();
-				if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-					setUrlValue(trimmed);
-				}
-			}).catch(() => {
-				// ignore permission errors
-			});
+			navigator.clipboard
+				.readText()
+				.then((text) => {
+					const trimmed = text.trim();
+					if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+						setUrlValue(trimmed);
+					}
+				})
+				.catch(() => {
+					// ignore permission errors
+				});
 		}
 	}, [urlDialogOpen]);
 
@@ -456,10 +473,14 @@ const ItemList: React.FC<ItemListProps> = ({
 		if (!editEntry || !editTitle.trim()) return;
 		setEditSubmitting(true);
 
-		await onUpdateEntry(editEntry.id, {
-			title: editTitle.trim(),
-			folder_id: Number(editFolderId),
-		}, editTagIds);
+		await onUpdateEntry(
+			editEntry.id,
+			{
+				title: editTitle.trim(),
+				folder_id: Number(editFolderId),
+			},
+			editTagIds,
+		);
 
 		setEditSubmitting(false);
 		onEditEntryClose?.();
@@ -487,7 +508,7 @@ const ItemList: React.FC<ItemListProps> = ({
 						{searchInput && (
 							<InputGroupAddon align="inline-end">
 								<button
-									onClick={() => setSearchInput('')}
+									onClick={() => setSearchInput("")}
 									className="flex items-center justify-center opacity-50 hover:opacity-100"
 									type="button"
 								>
@@ -667,35 +688,35 @@ const ItemList: React.FC<ItemListProps> = ({
 						</DialogDescription>
 					</DialogHeader>
 					<FieldGroup>
-					<Field>
-						<FieldLabel>
-							Title
-							{urlTitleFetching && (
-								<span className="ml-2 text-xs text-muted-foreground inline-flex items-center gap-1">
-														<Spinner className="size-3 animate-spin" />
-									Fetching title...
-								</span>
-							)}
-						</FieldLabel>
-						<Input
-							value={urlTitle}
-							onChange={(e) => setUrlTitle(e.target.value)}
-							placeholder="e.g., How to Build a Second Brain"
-						/>
-					</Field>
-					<Field>
-						<FieldLabel>URL</FieldLabel>
-						<Input
-							value={urlValue}
-							onChange={(e) => setUrlValue(e.target.value)}
-							placeholder="https://..."
-							onKeyDown={(e) => {
-								if (e.key === "Enter" && urlTitle.trim() && urlValue.trim()) {
-									handleAddUrl();
-								}
-							}}
-						/>
-					</Field>
+						<Field>
+							<FieldLabel>
+								Title
+								{urlTitleFetching && (
+									<span className="ml-2 text-xs text-muted-foreground inline-flex items-center gap-1">
+										<Spinner className="size-3 animate-spin" />
+										Fetching title...
+									</span>
+								)}
+							</FieldLabel>
+							<Input
+								value={urlTitle}
+								onChange={(e) => setUrlTitle(e.target.value)}
+								placeholder="e.g., How to Build a Second Brain"
+							/>
+						</Field>
+						<Field>
+							<FieldLabel>URL</FieldLabel>
+							<Input
+								value={urlValue}
+								onChange={(e) => setUrlValue(e.target.value)}
+								placeholder="https://..."
+								onKeyDown={(e) => {
+									if (e.key === "Enter" && urlTitle.trim() && urlValue.trim()) {
+										handleAddUrl();
+									}
+								}}
+							/>
+						</Field>
 						<Field>
 							<FieldLabel>Folder</FieldLabel>
 							<Select
@@ -858,7 +879,12 @@ const ItemList: React.FC<ItemListProps> = ({
 			</Dialog>
 
 			{/* Edit Entry Dialog */}
-			<Dialog open={!!editEntry} onOpenChange={(open) => { if (!open) onEditEntryClose?.(); }}>
+			<Dialog
+				open={!!editEntry}
+				onOpenChange={(open) => {
+					if (!open) onEditEntryClose?.();
+				}}
+			>
 				<DialogContent className="sm:max-w-md">
 					<DialogHeader>
 						<DialogTitle>Edit Entry</DialogTitle>
@@ -913,10 +939,7 @@ const ItemList: React.FC<ItemListProps> = ({
 						</Field>
 					</FieldGroup>
 					<DialogFooter>
-						<Button
-							variant="outline"
-							onClick={() => onEditEntryClose?.()}
-						>
+						<Button variant="outline" onClick={() => onEditEntryClose?.()}>
 							Cancel
 						</Button>
 						<Button
@@ -936,12 +959,14 @@ const ItemList: React.FC<ItemListProps> = ({
 							<MagnifyingGlass className="size-10 mb-4 opacity-30" />
 							{searchQuery ? (
 								<>
-									<p className="text-sm font-medium">No results for "{searchQuery}"</p>
+									<p className="text-sm font-medium">
+										No results for "{searchQuery}"
+									</p>
 									<Button
 										variant="ghost"
 										size="sm"
 										className="mt-3 text-xs"
-										onClick={() => onSearchChange('')}
+										onClick={() => onSearchChange("")}
 									>
 										Clear search
 									</Button>
@@ -964,10 +989,10 @@ const ItemList: React.FC<ItemListProps> = ({
 							<div
 								key={entry.id}
 								onClick={() => onSelectEntry(entry)}
-							className={cn(
-								"group cursor-pointer border-l-[3px] border-l-transparent hover:bg-muted data-[selected=true]:bg-accent data-[selected=true]:border-l-primary",
-								isCompact ? "px-3 py-2" : "px-4 py-4",
-							)}
+								className={cn(
+									"group cursor-pointer border-l-[3px] border-l-transparent hover:bg-muted data-[selected=true]:bg-accent data-[selected=true]:border-l-primary",
+									isCompact ? "px-3 py-2" : "px-4 py-4",
+								)}
 								data-selected={isSelected}
 							>
 								{/* Title */}

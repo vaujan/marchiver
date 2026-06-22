@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import ItemList from './components/ItemList'
 import DetailPane from './components/DetailPane'
 import TitleBar from './components/TitleBar'
+import SettingsDialog from './components/SettingsDialog'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { Toaster } from '@/components/ui/sonner'
@@ -82,6 +83,136 @@ function App(): React.ReactElement {
     })
   }, [])
 
+  // Sync dark class to documentElement so portal-rendered dialogs/dropdowns inherit the theme
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark)
+  }, [isDark])
+
+  // Font state
+  const [fontFamily, setFontFamily] = useState(() => {
+    try {
+      return window.localStorage.getItem('marchiver-font') || 'inter'
+    } catch {
+      return 'inter'
+    }
+  })
+
+  const FONT_CSS: Record<string, string> = {
+    inter: '"Inter Variable", "Inter", sans-serif',
+    system: 'system-ui, sans-serif',
+    arial: 'Arial, sans-serif',
+    helvetica: 'Helvetica, sans-serif',
+    segoe: '"Segoe UI", sans-serif',
+  }
+
+  const handleFontChange = useCallback((font: string) => {
+    setFontFamily(font)
+    try {
+      window.localStorage.setItem('marchiver-font', font)
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  useEffect(() => {
+    const css = FONT_CSS[fontFamily] || FONT_CSS.inter
+    document.documentElement.style.setProperty('--font-sans', css)
+  }, [fontFamily])
+
+  // Color scheme state
+  const [colorScheme, setColorScheme] = useState(() => {
+    try {
+      return window.localStorage.getItem('marchiver-color') || 'default'
+    } catch {
+      return 'default'
+    }
+  })
+
+  const COLOR_CSS: Record<string, Record<string, string>> = {
+    default: {
+      '--primary': 'oklch(0.58 0.12 25)',
+      '--ring': 'oklch(0.58 0.12 25)',
+      '--chart-1': 'oklch(0.58 0.12 25)',
+      '--chart-2': 'oklch(0.55 0 0)',
+      '--chart-3': 'oklch(0.45 0 0)',
+      '--chart-4': 'oklch(0.35 0 0)',
+      '--chart-5': 'oklch(0.25 0 0)',
+      '--sidebar-primary': 'oklch(0.58 0.12 25)',
+      '--sidebar-ring': 'oklch(0.58 0.12 25)',
+    },
+    orange: {
+      '--primary': 'oklch(0.65 0.15 50)',
+      '--ring': 'oklch(0.65 0.15 50)',
+      '--chart-1': 'oklch(0.65 0.15 50)',
+      '--chart-2': 'oklch(0.6 0.12 50)',
+      '--chart-3': 'oklch(0.5 0.1 50)',
+      '--chart-4': 'oklch(0.4 0.08 50)',
+      '--chart-5': 'oklch(0.3 0.06 50)',
+      '--sidebar-primary': 'oklch(0.65 0.15 50)',
+      '--sidebar-ring': 'oklch(0.65 0.15 50)',
+    },
+    yellow: {
+      '--primary': 'oklch(0.7 0.14 85)',
+      '--ring': 'oklch(0.7 0.14 85)',
+      '--chart-1': 'oklch(0.7 0.14 85)',
+      '--chart-2': 'oklch(0.6 0.12 85)',
+      '--chart-3': 'oklch(0.5 0.1 85)',
+      '--chart-4': 'oklch(0.4 0.08 85)',
+      '--chart-5': 'oklch(0.3 0.06 85)',
+      '--sidebar-primary': 'oklch(0.7 0.14 85)',
+      '--sidebar-ring': 'oklch(0.7 0.14 85)',
+    },
+    green: {
+      '--primary': 'oklch(0.55 0.15 155)',
+      '--ring': 'oklch(0.55 0.15 155)',
+      '--chart-1': 'oklch(0.55 0.15 155)',
+      '--chart-2': 'oklch(0.5 0.12 155)',
+      '--chart-3': 'oklch(0.4 0.1 155)',
+      '--chart-4': 'oklch(0.35 0.08 155)',
+      '--chart-5': 'oklch(0.25 0.06 155)',
+      '--sidebar-primary': 'oklch(0.55 0.15 155)',
+      '--sidebar-ring': 'oklch(0.55 0.15 155)',
+    },
+    blue: {
+      '--primary': 'oklch(0.55 0.15 250)',
+      '--ring': 'oklch(0.55 0.15 250)',
+      '--chart-1': 'oklch(0.55 0.15 250)',
+      '--chart-2': 'oklch(0.5 0.12 250)',
+      '--chart-3': 'oklch(0.4 0.1 250)',
+      '--chart-4': 'oklch(0.35 0.08 250)',
+      '--chart-5': 'oklch(0.25 0.06 250)',
+      '--sidebar-primary': 'oklch(0.55 0.15 250)',
+      '--sidebar-ring': 'oklch(0.55 0.15 250)',
+    },
+    purple: {
+      '--primary': 'oklch(0.5 0.15 300)',
+      '--ring': 'oklch(0.5 0.15 300)',
+      '--chart-1': 'oklch(0.5 0.15 300)',
+      '--chart-2': 'oklch(0.45 0.12 300)',
+      '--chart-3': 'oklch(0.4 0.1 300)',
+      '--chart-4': 'oklch(0.35 0.08 300)',
+      '--chart-5': 'oklch(0.25 0.06 300)',
+      '--sidebar-primary': 'oklch(0.5 0.15 300)',
+      '--sidebar-ring': 'oklch(0.5 0.15 300)',
+    },
+  }
+
+  const handleColorChange = useCallback((color: string) => {
+    setColorScheme(color)
+    try {
+      window.localStorage.setItem('marchiver-color', color)
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  useEffect(() => {
+    const vars = COLOR_CSS[colorScheme] || COLOR_CSS.default
+    for (const [key, value] of Object.entries(vars)) {
+      document.documentElement.style.setProperty(key, value)
+    }
+  }, [colorScheme])
+
   const sortEntries = useCallback((list: Entry[], order: typeof sortOrder): Entry[] => {
     return [...list].sort((a, b) => {
       if (order === 'newest') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -95,6 +226,7 @@ function App(): React.ReactElement {
   // Dialog state (lifted from ItemList for menu bar access)
   const [urlDialogOpen, setUrlDialogOpen] = useState(false)
   const [imageDialogOpen, setImageDialogOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   const loadData = async (): Promise<void> => {
     if (useMockData) {
@@ -223,8 +355,8 @@ function App(): React.ReactElement {
     })
   }
 
-  const handleUpdateEntry = async (id: number, updates: Partial<Entry>): Promise<void> => {
-    await window.electronAPI.updateEntry(id, updates)
+  const handleUpdateEntry = async (id: number, updates: Partial<Entry>, tagIds?: number[]): Promise<void> => {
+    await window.electronAPI.updateEntry(id, updates, tagIds)
     setEntries((prev) => prev.map((e) => (e.id === id ? { ...e, ...updates } : e)))
     if (selectedEntry?.id === id) {
       setSelectedEntry((prev) => (prev ? { ...prev, ...updates } : null))
@@ -279,6 +411,14 @@ function App(): React.ReactElement {
   return (
     <div className={cn("h-screen w-screen flex flex-col overflow-hidden bg-background", isDark && "dark")}>
       <Toaster position="bottom-right" />
+      <SettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        fontFamily={fontFamily}
+        onFontChange={handleFontChange}
+        colorScheme={colorScheme}
+        onColorChange={handleColorChange}
+      />
       <SidebarProvider className="flex-1 w-full min-h-0">
         <Sidebar
           folders={folders}
@@ -335,6 +475,7 @@ function App(): React.ReactElement {
             <TitleBar
               isDark={isDark}
               onToggleTheme={toggleTheme}
+              onSettingsOpen={() => setSettingsOpen(true)}
               trashView={trashView}
               activeFolder={activeFolder}
               activeTag={activeTag}

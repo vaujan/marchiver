@@ -17,18 +17,18 @@ Whenever you are creating or modifying UI components in `src/renderer/components
 
 Before writing any custom markup, check if a shadcn/ui component exists for the pattern. Never build a custom styled `div` when a shadcn component is available.
 
-| Need | Use |
-|------|-----|
-| Button/action | `Button` with `variant="default" \| "outline" \| "destructive" \| "ghost" \| "link"` |
-| Form inputs | `Input`, `Select`, `Textarea`, `Checkbox`, `Switch` |
-| Form layout | `FieldGroup` + `Field` + `FieldLabel` |
-| Data display | `Card`, `Badge`, `Table` |
-| Navigation | `Sidebar`, `SidebarMenu`, `SidebarMenuButton` |
-| Overlays | `Dialog`, `Sheet`, `Drawer` |
-| Empty state | `Empty` + `EmptyHeader` + `EmptyMedia` + `EmptyTitle` + `EmptyDescription` |
-| Scrollable areas | `ScrollArea` |
-| Dividers | `Separator` |
-| Tags/labels | `Badge` (variant="secondary" or "outline") |
+| Need             | Use                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------ |
+| Button/action    | `Button` with `variant="default" \| "outline" \| "destructive" \| "ghost" \| "link"` |
+| Form inputs      | `Input`, `Select`, `Textarea`, `Checkbox`, `Switch`                                  |
+| Form layout      | `FieldGroup` + `Field` + `FieldLabel`                                                |
+| Data display     | `Card`, `Badge`, `Table`                                                             |
+| Navigation       | `Sidebar`, `SidebarMenu`, `SidebarMenuButton`                                        |
+| Overlays         | `Dialog`, `Sheet`, `Drawer`                                                          |
+| Empty state      | `Empty` + `EmptyHeader` + `EmptyMedia` + `EmptyTitle` + `EmptyDescription`           |
+| Scrollable areas | `ScrollArea`                                                                         |
+| Dividers         | `Separator`                                                                          |
+| Tags/labels      | `Badge` (variant="secondary" or "outline")                                           |
 
 ### 2. No Hardcoded Colors
 
@@ -36,18 +36,18 @@ Never use raw hex values like `#1a1a1a`, `#e54d42`, `#a0a0a0` in component files
 
 Use only shadcn semantic tokens:
 
-| Token | Purpose |
-|-------|---------|
-| `bg-primary` | Primary action backgrounds, selected states |
-| `text-primary` | Links, active text |
-| `bg-muted` | Subtle backgrounds, empty preview areas |
-| `text-muted-foreground` | Secondary text, metadata |
-| `bg-sidebar` | Sidebar background |
-| `text-sidebar-foreground` | Sidebar text |
-| `bg-sidebar-accent` | Sidebar active item background |
-| `text-sidebar-accent-foreground` | Sidebar active item text |
-| `border-border` | Borders, dividers |
-| `bg-destructive` / `text-destructive` | Delete/trash actions |
+| Token                                 | Purpose                                     |
+| ------------------------------------- | ------------------------------------------- |
+| `bg-primary`                          | Primary action backgrounds, selected states |
+| `text-primary`                        | Links, active text                          |
+| `bg-muted`                            | Subtle backgrounds, empty preview areas     |
+| `text-muted-foreground`               | Secondary text, metadata                    |
+| `bg-sidebar`                          | Sidebar background                          |
+| `text-sidebar-foreground`             | Sidebar text                                |
+| `bg-sidebar-accent`                   | Sidebar active item background              |
+| `text-sidebar-accent-foreground`      | Sidebar active item text                    |
+| `border-border`                       | Borders, dividers                           |
+| `bg-destructive` / `text-destructive` | Delete/trash actions                        |
 
 ### 3. No Custom CSS Tokens
 
@@ -61,7 +61,7 @@ The marchiver sidebar uses a dark background in light mode. Achieve this by addi
 
 ```tsx
 <Sidebar collapsible="none" className="dark">
-  ...
+	...
 </Sidebar>
 ```
 
@@ -93,18 +93,18 @@ All forms must use `FieldGroup` and `Field` for layout. Never use raw `div` with
 
 ```tsx
 <FieldGroup>
-  <Field>
-    <FieldLabel>Title</FieldLabel>
-    <Input />
-  </Field>
-  <Field>
-    <FieldLabel>Folder</FieldLabel>
-    <Select>...</Select>
-  </Field>
-  <Field orientation="horizontal">
-    <Checkbox id="capture" />
-    <FieldLabel htmlFor="capture">Capture screenshot</FieldLabel>
-  </Field>
+	<Field>
+		<FieldLabel>Title</FieldLabel>
+		<Input />
+	</Field>
+	<Field>
+		<FieldLabel>Folder</FieldLabel>
+		<Select>...</Select>
+	</Field>
+	<Field orientation="horizontal">
+		<Checkbox id="capture" />
+		<FieldLabel htmlFor="capture">Capture screenshot</FieldLabel>
+	</Field>
 </FieldGroup>
 ```
 
@@ -114,18 +114,22 @@ Entry list items in ItemList should use `Card` (size="sm") with `CardHeader` and
 
 ```tsx
 <Card size="sm" data-active={selected} className="...">
-  <CardHeader>
-    <div className="text-sm font-semibold truncate">{title}</div>
-  </CardHeader>
-  <CardContent>
-    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-      <Link data-icon="inline-start" />
-      <span>{type}</span>
-    </div>
-    <div className="flex flex-wrap gap-1 mt-1.5">
-      {tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
-    </div>
-  </CardContent>
+	<CardHeader>
+		<div className="text-sm font-medium truncate">{title}</div>
+	</CardHeader>
+	<CardContent>
+		<div className="flex items-center gap-2 text-xs text-muted-foreground">
+			<Link data-icon="inline-start" />
+			<span>{type}</span>
+		</div>
+		<div className="flex flex-wrap gap-1 mt-1.5">
+			{tags.map((tag) => (
+				<Badge key={tag} variant="secondary">
+					{tag}
+				</Badge>
+			))}
+		</div>
+	</CardContent>
 </Card>
 ```
 
@@ -135,25 +139,25 @@ For "no selection" or "no results" states, use the `Empty` component:
 
 ```tsx
 <Empty className="h-full flex-1 border-none">
-  <EmptyHeader>
-    <EmptyMedia variant="icon">
-      <Package />
-    </EmptyMedia>
-    <EmptyTitle>marchiver</EmptyTitle>
-    <EmptyDescription>Select an item to view details</EmptyDescription>
-  </EmptyHeader>
+	<EmptyHeader>
+		<EmptyMedia variant="icon">
+			<Package />
+		</EmptyMedia>
+		<EmptyTitle>marchiver</EmptyTitle>
+		<EmptyDescription>Select an item to view details</EmptyDescription>
+	</EmptyHeader>
 </Empty>
 ```
 
 ### 10. Button Variants
 
-| Action | Variant |
-|--------|---------|
-| Primary action (Save, Open) | `variant="default"` |
-| Secondary action (Cancel, Edit) | `variant="outline"` |
-| Destructive action (Delete, Trash) | `variant="destructive"` |
-| Navigation/link | `variant="link"` |
-| Icon-only | `size="icon"` or `size="icon-sm"` |
+| Action                             | Variant                           |
+| ---------------------------------- | --------------------------------- |
+| Primary action (Save, Open)        | `variant="default"`               |
+| Secondary action (Cancel, Edit)    | `variant="outline"`               |
+| Destructive action (Delete, Trash) | `variant="destructive"`           |
+| Navigation/link                    | `variant="link"`                  |
+| Icon-only                          | `size="icon"` or `size="icon-sm"` |
 
 ### 11. Layout Tokens
 
@@ -196,7 +200,9 @@ Use `ScrollArea` for any scrollable list (folders, tags, entries, detail content
 
 ```tsx
 <ScrollArea className="flex-1">
-  {entries.map(entry => <Card key={entry.id}>...</Card>)}
+	{entries.map((entry) => (
+		<Card key={entry.id}>...</Card>
+	))}
 </ScrollArea>
 ```
 
@@ -206,28 +212,28 @@ Use `Dialog` with `DialogTrigger` for modal actions. Use `FieldGroup` + `Field` 
 
 ```tsx
 <Dialog open={open} onOpenChange={setOpen}>
-  <DialogTrigger asChild>
-    <Button size="sm">
-      <Plus data-icon="inline-start" />
-      Add
-    </Button>
-  </DialogTrigger>
-  <DialogContent>
-    <DialogHeader>
-      <DialogTitle>Add Item</DialogTitle>
-      <DialogDescription>...</DialogDescription>
-    </DialogHeader>
-    <FieldGroup>
-      <Field>
-        <FieldLabel>Title</FieldLabel>
-        <Input />
-      </Field>
-    </FieldGroup>
-    <DialogFooter>
-      <Button variant="outline">Cancel</Button>
-      <Button>Save</Button>
-    </DialogFooter>
-  </DialogContent>
+	<DialogTrigger asChild>
+		<Button size="sm">
+			<Plus data-icon="inline-start" />
+			Add
+		</Button>
+	</DialogTrigger>
+	<DialogContent>
+		<DialogHeader>
+			<DialogTitle>Add Item</DialogTitle>
+			<DialogDescription>...</DialogDescription>
+		</DialogHeader>
+		<FieldGroup>
+			<Field>
+				<FieldLabel>Title</FieldLabel>
+				<Input />
+			</Field>
+		</FieldGroup>
+		<DialogFooter>
+			<Button variant="outline">Cancel</Button>
+			<Button>Save</Button>
+		</DialogFooter>
+	</DialogContent>
 </Dialog>
 ```
 
@@ -262,39 +268,39 @@ These patterns are **prohibited** in the marchiver codebase:
 
 ```tsx
 <Sidebar collapsible="none" className="dark">
-  <SidebarContent>
-    <SidebarGroup>
-      <SidebarGroupLabel>Library</SidebarGroupLabel>
-      <SidebarGroupContent>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton isActive={active} onClick={handleClick}>
-              <Tray data-icon="inline-start" />
-              All Items
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
-    <SidebarSeparator />
-    <SidebarGroup>
-      <SidebarGroupLabel>Folders</SidebarGroupLabel>
-      <SidebarGroupContent>
-        <ScrollArea className="h-[200px]">
-          <SidebarMenu>
-            {folders.map(folder => (
-              <SidebarMenuItem key={folder.id}>
-                <SidebarMenuButton isActive={activeFolder === folder.id}>
-                  <Folder data-icon="inline-start" />
-                  {folder.name}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </ScrollArea>
-      </SidebarGroupContent>
-    </SidebarGroup>
-  </SidebarContent>
+	<SidebarContent>
+		<SidebarGroup>
+			<SidebarGroupLabel>Library</SidebarGroupLabel>
+			<SidebarGroupContent>
+				<SidebarMenu>
+					<SidebarMenuItem>
+						<SidebarMenuButton isActive={active} onClick={handleClick}>
+							<Tray data-icon="inline-start" />
+							All Items
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+				</SidebarMenu>
+			</SidebarGroupContent>
+		</SidebarGroup>
+		<SidebarSeparator />
+		<SidebarGroup>
+			<SidebarGroupLabel>Folders</SidebarGroupLabel>
+			<SidebarGroupContent>
+				<ScrollArea className="h-[200px]">
+					<SidebarMenu>
+						{folders.map((folder) => (
+							<SidebarMenuItem key={folder.id}>
+								<SidebarMenuButton isActive={activeFolder === folder.id}>
+									<Folder data-icon="inline-start" />
+									{folder.name}
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						))}
+					</SidebarMenu>
+				</ScrollArea>
+			</SidebarGroupContent>
+		</SidebarGroup>
+	</SidebarContent>
 </Sidebar>
 ```
 
@@ -302,29 +308,31 @@ These patterns are **prohibited** in the marchiver codebase:
 
 ```tsx
 <Card
-  size="sm"
-  data-active={selectedEntry?.id === entry.id}
-  className="mb-2 cursor-pointer border-transparent data-[active=true]:border-primary data-[active=true]:bg-accent"
-  onClick={() => onSelectEntry(entry)}
+	size="sm"
+	data-active={selectedEntry?.id === entry.id}
+	className="mb-2 cursor-pointer border-transparent data-[active=true]:border-primary data-[active=true]:bg-accent"
+	onClick={() => onSelectEntry(entry)}
 >
-  <CardHeader>
-    <div className="text-sm font-semibold truncate">{entry.title}</div>
-  </CardHeader>
-  <CardContent>
-    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-      <Link data-icon="inline-start" />
-      <span className="capitalize">{entry.type}</span>
-      <span>•</span>
-      <span>{new Date(entry.created_at).toLocaleDateString()}</span>
-    </div>
-    {entry.tags.length > 0 && (
-      <div className="flex flex-wrap gap-1 mt-1.5">
-        {entry.tags.map(tag => (
-          <Badge key={tag} variant="secondary">{tag}</Badge>
-        ))}
-      </div>
-    )}
-  </CardContent>
+	<CardHeader>
+		<div className="text-sm font-medium truncate">{entry.title}</div>
+	</CardHeader>
+	<CardContent>
+		<div className="flex items-center gap-2 text-xs text-muted-foreground">
+			<Link data-icon="inline-start" />
+			<span className="capitalize">{entry.type}</span>
+			<span>•</span>
+			<span>{new Date(entry.created_at).toLocaleDateString()}</span>
+		</div>
+		{entry.tags.length > 0 && (
+			<div className="flex flex-wrap gap-1 mt-1.5">
+				{entry.tags.map((tag) => (
+					<Badge key={tag} variant="secondary">
+						{tag}
+					</Badge>
+				))}
+			</div>
+		)}
+	</CardContent>
 </Card>
 ```
 
@@ -332,18 +340,18 @@ These patterns are **prohibited** in the marchiver codebase:
 
 ```tsx
 <div className="flex gap-2">
-  <Button onClick={handleOpen}>
-    <ArrowSquareOut data-icon="inline-start" />
-    Open in Browser
-  </Button>
-  <Button variant="outline">
-    <PencilSimple data-icon="inline-start" />
-    Edit
-  </Button>
-  <Button variant="destructive" onClick={handleDelete}>
-    <Trash data-icon="inline-start" />
-    Move to Trash
-  </Button>
+	<Button onClick={handleOpen}>
+		<ArrowSquareOut data-icon="inline-start" />
+		Open in Browser
+	</Button>
+	<Button variant="outline">
+		<PencilSimple data-icon="inline-start" />
+		Edit
+	</Button>
+	<Button variant="destructive" onClick={handleDelete}>
+		<Trash data-icon="inline-start" />
+		Move to Trash
+	</Button>
 </div>
 ```
 

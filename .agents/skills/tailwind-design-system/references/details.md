@@ -114,7 +114,7 @@ export function CardTitle({
   return (
     <h3
       ref={ref}
-      className={cn('text-2xl font-semibold leading-none tracking-tight', className)}
+      className={cn('text-2xl font-medium leading-none tracking-tight', className)}
       {...props}
     />
   )
@@ -361,13 +361,13 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+	return twMerge(clsx(inputs));
 }
 
 // Focus ring utility
 export const focusRing = cn(
-  "focus-visible:outline-none focus-visible:ring-2",
-  "focus-visible:ring-ring focus-visible:ring-offset-2",
+	"focus-visible:outline-none focus-visible:ring-2",
+	"focus-visible:ring-ring focus-visible:ring-offset-2",
 );
 
 // Disabled utility
