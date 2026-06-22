@@ -38,3 +38,6 @@ yarn.lock
 *.rpm
 *.AppImage
 
+# Settings repo (nested git)
+settings-repo/
+
