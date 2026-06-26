@@ -1,28 +1,9 @@
+import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
-import { CheckCircleIcon, InfoIcon, WarningIcon, XCircleIcon, SpinnerIcon } from "@phosphor-icons/react"
-import { useSyncExternalStore } from "react"
-
-const getTheme = () => {
-  if (typeof document === "undefined") return "light"
-  const root = document.documentElement
-  return root.classList.contains("dark") ? "dark" : "light"
-}
-
-const subscribe = (callback: () => void) => {
-  const observer = new MutationObserver((mutations) => {
-    for (const m of mutations) {
-      if (m.attributeName === "class") {
-        callback()
-        return
-      }
-    }
-  })
-  observer.observe(document.documentElement, { attributes: true })
-  return () => observer.disconnect()
-}
+import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const theme = useSyncExternalStore(subscribe, getTheme, () => "light")
+  const { theme = "system" } = useTheme()
 
   return (
     <Sonner
@@ -30,19 +11,19 @@ const Toaster = ({ ...props }: ToasterProps) => {
       className="toaster group"
       icons={{
         success: (
-          <CheckCircleIcon className="size-4" />
+          <CircleCheckIcon className="size-4" />
         ),
         info: (
           <InfoIcon className="size-4" />
         ),
         warning: (
-          <WarningIcon className="size-4" />
+          <TriangleAlertIcon className="size-4" />
         ),
         error: (
-          <XCircleIcon className="size-4" />
+          <OctagonXIcon className="size-4" />
         ),
         loading: (
-          <SpinnerIcon className="size-4 animate-spin" />
+          <Loader2Icon className="size-4 animate-spin" />
         ),
       }}
       style={
