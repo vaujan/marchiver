@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import type { Entry } from "../App";
 import BlockCard from "./BlockCard";
+import AddCard from "./AddCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -11,6 +12,7 @@ interface BlockGridProps {
 	entries: Entry[];
 	selectedEntry: Entry | null;
 	onSelectEntry: (entry: Entry) => void;
+	onAddEntry: (url: string) => Promise<void>;
 	onSearchChange: (q: string) => void;
 	searchQuery: string;
 	trashView: boolean;
@@ -22,12 +24,24 @@ const BlockGrid: React.FC<BlockGridProps> = ({
 	entries,
 	selectedEntry,
 	onSelectEntry,
+	onAddEntry,
 	onSearchChange,
 	searchQuery,
 	trashView,
 	activeFolder,
 	viewMode,
 }) => {
+	const [isAdding, setIsAdding] = useState(false);
+
+	const handleAdd = async (url: string) => {
+		setIsAdding(true);
+		try {
+			await onAddEntry(url);
+		} finally {
+			setIsAdding(false);
+		}
+	};
+
 	const renderEmptyState = () => (
 		<div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
 			<MagnifyingGlass className="size-10 mb-4 opacity-30" />
@@ -54,6 +68,18 @@ const BlockGrid: React.FC<BlockGridProps> = ({
 			)}
 		</div>
 	);
+
+	if (entries.length === 0 && !searchQuery) {
+		return (
+			<div className="flex-1 min-h-0">
+				<div className="p-4">
+					<div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3">
+						<AddCard onAdd={handleAdd} isAdding={isAdding} />
+					</div>
+				</div>
+			</div>
+		);
+	}
 
 	if (entries.length === 0) {
 		return <div className="flex-1 min-h-0">{renderEmptyState()}</div>;
@@ -101,6 +127,7 @@ const BlockGrid: React.FC<BlockGridProps> = ({
 		<ScrollArea className="flex-1 min-h-0">
 			<div className="p-4">
 				<div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3">
+					<AddCard onAdd={handleAdd} isAdding={isAdding} />
 					{entries.map((entry) => (
 						<BlockCard
 							key={entry.id}

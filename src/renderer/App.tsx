@@ -457,9 +457,7 @@ function App(): React.ReactElement {
             onSearchChange={setSearchQuery}
             onSelectEntry={setSelectedEntry}
             onAddEntry={handleAddEntry}
-            onUpdateEntry={handleUpdateEntry}
             onDeleteEntry={handleDeleteEntry}
-            onAddTag={handleAddTag}
             activeFolder={activeFolder}
             activeTag={activeTag}
             trashView={trashView}
@@ -469,13 +467,6 @@ function App(): React.ReactElement {
             onViewModeChange={setViewMode}
             activeTagFilters={activeTagFilters}
             onActiveTagFiltersChange={setActiveTagFilters}
-            editingEntry={editingEntry}
-            onEditEntryClose={handleEditEntryClose}
-            onEditEntry={handleEditEntry}
-            urlDialogOpen={urlDialogOpen}
-            onUrlDialogOpenChange={setUrlDialogOpen}
-            imageDialogOpen={imageDialogOpen}
-            onImageDialogOpenChange={setImageDialogOpen}
             onNavigateToAll={() => {
               setTrashView(false)
               setActiveFolder(null)
